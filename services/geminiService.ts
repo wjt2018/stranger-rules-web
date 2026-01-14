@@ -1,3 +1,4 @@
+
 import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
 
 // Initialize the client
@@ -31,7 +32,9 @@ export const sendMessageToGemini = async (
       config: {
         systemInstruction: SYSTEM_INSTRUCTION,
         temperature: 0.8, // Creative but somewhat consistent
-        maxOutputTokens: 500, // Keep responses relatively short for game flow
+        // Set both maxOutputTokens and thinkingConfig.thinkingBudget at the same time to avoid empty responses
+        maxOutputTokens: 500,
+        thinkingConfig: { thinkingBudget: 100 },
       },
       history: history,
     });
@@ -40,6 +43,7 @@ export const sendMessageToGemini = async (
       message: message,
     });
 
+    // Directly access the text property as per GenerateContentResponse definition
     return result.text || "...信号中断...";
   } catch (error) {
     console.error("Gemini API Error:", error);
