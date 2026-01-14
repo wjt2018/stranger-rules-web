@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 
 interface IntroSceneProps {
@@ -6,9 +6,11 @@ interface IntroSceneProps {
   onClose: () => void;
 }
 
-const BG_PHASE_1 = 'https://i.postimg.cc/RFKHB9zG/f47d197b208d34a2fb4773509c88cf82.jpg';
+// const BG_PHASE_1 = 'https://i.postimg.cc/RFKHB9zG/f47d197b208d34a2fb4773509c88cf82.jpg';
+const BG_PHASE_1 = 'https://i.postimg.cc/hvQjS9wy/Bobbin-heads.gif';
 const BG_PHASE_2 = 'https://i.postimg.cc/NjryvBYv/xia-zai.png'; 
 const BG_PHASE_3 = 'https://i.postimg.cc/Xvrr355V/The-DAMNED.gif'; 
+const BG_PHASE_4 = 'https://i.postimg.cc/vTBrX6CC/xia-zai.gif';
 
 const SCARY_PHRASES = [
   "I FOUND YOU", "I HEAR YOU", "I SEE YOU", "NO ESCAPE", "LOOK BEHIND YOU", 
@@ -16,8 +18,27 @@ const SCARY_PHRASES = [
   "DON'T BREATHE", "END IS NEAR", "VOICES", "STATIC", "DEATH", "FEAR ME"
 ];
 
+// 将文本修改为数组格式，方便逐行精准控制
+const BRIEFING_LINES = [
+  "系统正在初始化...",
+  "连接至 [异世界]...",
+  "",
+  "你醒了。",
+  "这不是你熟悉的世界",
+  "包括你的身体也变成了陌生的模样。",
+  "",
+  "主线任务：你需要替宿主(即此刻这副身体原本的主人)完成ta最深的愿望。记住：你有7天时间完成，才能逃离这里回到你原本的世界，否则你将永远停留在这里。",
+  "",
+  "每日任务：在这7日里每一天都会对应七宗罪中的其中一罪，你必须在每日12点前完成它。否则会被当场抹杀。",
+  "",
+  "规则怪谈：请遵循每个世界的规则。你说不遵守怎样？哈哈哈哈哈哈你可以试试看。",
+  "",
+  "请及时在下方信息栏查看你的任务和状态。"
+];
+
 export const IntroScene: React.FC<IntroSceneProps> = ({ onComplete, onClose }) => {
   const [step, setStep] = useState(0); 
+  const briefingEndRef = useRef<HTMLDivElement>(null);
   
   // --- Step 0: 叙事状态 ---
   const [textIndex, setTextIndex] = useState(0);
@@ -41,6 +62,10 @@ export const IntroScene: React.FC<IntroSceneProps> = ({ onComplete, onClose }) =
     style: React.CSSProperties;
   }>>([]);
 
+  // --- Step 3: 简报状态 ---
+  const [displayedBriefingLines, setDisplayedBriefingLines] = useState<string[]>([]);
+  const [briefingComplete, setBriefingComplete] = useState(false);
+
   const narrativeLines = [
     "系统自检启动...",
     "检测到未注册的意识信号。",
@@ -52,9 +77,7 @@ export const IntroScene: React.FC<IntroSceneProps> = ({ onComplete, onClose }) =
     "选择你将要前往的次元。"
   ];
 
-  // ----------------------------------------------------------------
-  // 逻辑：Step 0 叙事推进 (单句模式)
-  // ----------------------------------------------------------------
+  // Step 0 叙事逻辑
   useEffect(() => {
     if (step === 0) {
       if (textIndex < narrativeLines.length) {
@@ -69,9 +92,7 @@ export const IntroScene: React.FC<IntroSceneProps> = ({ onComplete, onClose }) =
     }
   }, [step, textIndex]);
 
-  // ----------------------------------------------------------------
-  // 逻辑：Step 1 恐怖等级
-  // ----------------------------------------------------------------
+  // Step 1 恐怖等级计算
   useEffect(() => {
     if (step === 1) {
       const filledCount = Object.values(formData).filter(v => (v as string).trim().length > 0).length;
@@ -79,9 +100,7 @@ export const IntroScene: React.FC<IntroSceneProps> = ({ onComplete, onClose }) =
     }
   }, [formData, step]);
 
-  // ----------------------------------------------------------------
-  // 逻辑：Step 2 定时器 (3秒后触发瀑布)
-  // ----------------------------------------------------------------
+  // Step 2 高潮启动计时
   useEffect(() => {
     if (step === 2) {
       const timer = setTimeout(() => setIsZooming(true), 3000);
@@ -89,9 +108,7 @@ export const IntroScene: React.FC<IntroSceneProps> = ({ onComplete, onClose }) =
     }
   }, [step]);
 
-  // ----------------------------------------------------------------
-  // 逻辑：Step 2 文字瀑布 (2秒填满全屏)
-  // ----------------------------------------------------------------
+  // Step 2 文字瀑布逻辑
   useEffect(() => {
     if (step === 2 && isZooming) {
       const totalLines = 40; 
@@ -102,7 +119,7 @@ export const IntroScene: React.FC<IntroSceneProps> = ({ onComplete, onClose }) =
       const interval = setInterval(() => {
         if (currentLine >= totalLines) {
           clearInterval(interval);
-          setTimeout(() => onComplete(formData), 1000);
+          setTimeout(() => setStep(3), 1000); 
           return;
         }
 
@@ -136,6 +153,32 @@ export const IntroScene: React.FC<IntroSceneProps> = ({ onComplete, onClose }) =
       return () => clearInterval(interval);
     }
   }, [step, isZooming]);
+
+  // Step 3 简报逐行显示逻辑 - 修复重复添加 Bug
+  useEffect(() => {
+    if (step === 3) {
+      let currentIdx = 0;
+      const timer = setInterval(() => {
+        if (currentIdx < BRIEFING_LINES.length) {
+          const lineToAdd = BRIEFING_LINES[currentIdx];
+          setDisplayedBriefingLines(prev => [...prev, lineToAdd]);
+          currentIdx++;
+        } else {
+          clearInterval(timer);
+          setBriefingComplete(true);
+        }
+      }, 500);
+
+      return () => clearInterval(timer);
+    }
+  }, [step]);
+
+  // 简报自动滚动
+  useEffect(() => {
+    if (step === 3) {
+      briefingEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [displayedBriefingLines, step]);
 
   const getCorruptedStyle = () => {
     if (horrorLevel === 0) return {};
@@ -209,7 +252,18 @@ export const IntroScene: React.FC<IntroSceneProps> = ({ onComplete, onClose }) =
         </div>
       )}
 
-      {/* 扫线与噪点 */}
+      {/* Step 3 (Phase 4) 背景 */}
+      {step === 3 && (
+        <div 
+          key="bg-phase-4"
+          className="absolute inset-0 z-10 bg-cover bg-center"
+          style={{ backgroundImage: `url('${BG_PHASE_4}')` }}
+        >
+          <div className="absolute inset-0 bg-black/30 backdrop-blur-[2px]"></div>
+        </div>
+      )}
+
+      {/* 扫线与噪点覆盖 */}
       <div className="absolute inset-0 pointer-events-none z-20 mix-blend-overlay">
         <div className="w-full h-full bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[length:100%_2px,3px_100%]"></div>
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/noise.png')]" style={{ opacity: 0.1 + (horrorLevel * 0.4) }}></div>
@@ -258,7 +312,7 @@ export const IntroScene: React.FC<IntroSceneProps> = ({ onComplete, onClose }) =
                 </div>
                 <GlitchInput 
                   label="告诉我你要去哪里完成救赎" 
-                  placeholder="选择你即将前往的世界背景，寂静岭？中世纪魔幻？怪奇物语？古代权谋？武侠修仙？…" 
+                  placeholder="选择你即将前往的世界背景，寂静岭？怪奇物语？中世纪魔幻？古代权谋？武侠修仙？…" 
                   value={formData.anchor} 
                   onChange={(v: string) => setFormData({...formData, anchor: v})} 
                   horrorLevel={horrorLevel} 
@@ -279,6 +333,36 @@ export const IntroScene: React.FC<IntroSceneProps> = ({ onComplete, onClose }) =
             </button>
           </div>
         )}
+
+        {step === 3 && (
+          <div className="w-full max-w-2xl h-[80vh] flex flex-col items-start p-6 md:p-10 font-mono">
+             <div className="flex-1 overflow-y-auto no-scrollbar space-y-6 w-full">
+                {displayedBriefingLines.map((line, i) => {
+                  // 防御性检查，确保 line 存在且为字符串
+                  const safeLine = (line || '').toString();
+                  const isSpecial = safeLine.startsWith('主线') || safeLine.startsWith('每日') || safeLine.startsWith('规则');
+                  
+                  return (
+                    <p key={i} className={`text-base md:text-xl leading-relaxed drop-shadow-[0_2px_4px_rgba(0,0,0,1)] ${isSpecial ? 'text-red-500 font-bold' : 'text-gray-100'} animate-in fade-in slide-in-from-left-2 duration-300`}>
+                      {safeLine.trim() === '' ? '\u00A0' : safeLine}
+                    </p>
+                  );
+                })}
+                <div ref={briefingEndRef} className="h-20" />
+             </div>
+             
+             {briefingComplete && (
+               <div className="w-full pt-8 flex justify-center animate-in fade-in zoom-in duration-1000">
+                  <button 
+                    onClick={() => onComplete(formData)}
+                    className="px-10 py-4 bg-white text-black font-black uppercase tracking-widest hover:bg-red-600 hover:text-white transition-all shadow-[0_0_25px_rgba(255,255,255,0.5)] border-2 border-transparent hover:border-white"
+                  >
+                    接受协议
+                  </button>
+               </div>
+             )}
+          </div>
+        )}
         
         <button onClick={onClose} className="absolute top-4 right-4 opacity-30 hover:opacity-100 z-[60]"><X /></button>
       </div>
@@ -294,6 +378,9 @@ export const IntroScene: React.FC<IntroSceneProps> = ({ onComplete, onClose }) =
       )}
 
       <style>{`
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
         @keyframes screen-shake {
           0% { transform: translate(0, 0); }
           25% { transform: translate(-4px, 4px) rotate(-1deg); }

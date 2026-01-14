@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Send, Terminal as TerminalIcon, ChevronUp, ChevronDown, Zap, Search, Eye, MessageSquare, ShieldAlert } from 'lucide-react';
+import { Send, Terminal as TerminalIcon, ChevronUp, ChevronDown, Zap, Search, Eye, MessageSquare, ShieldAlert, Cpu, Radio } from 'lucide-react';
 import { ChatMessage } from '../types';
 import { sendMessageToGemini } from '../services/geminiService';
 import { GlitchText } from './GlitchText';
@@ -13,7 +13,6 @@ export const Terminal: React.FC<TerminalProps> = ({ active }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isActionsExpanded, setIsActionsExpanded] = useState(false);
   
-  // 扩展游戏时间状态，包含年月
   const [gameTime, setGameTime] = useState({
     year: 2049,
     month: 10,
@@ -35,7 +34,6 @@ export const Terminal: React.FC<TerminalProps> = ({ active }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
-  // 模拟游戏时间流逝
   useEffect(() => {
     const timer = setInterval(() => {
       setGameTime(prev => {
@@ -44,7 +42,7 @@ export const Terminal: React.FC<TerminalProps> = ({ active }) => {
         if (second >= 60) { second = 0; minute += 1; }
         if (minute >= 60) { minute = 0; hour += 1; }
         if (hour >= 24) { hour = 0; day += 1; }
-        if (day > 30) { day = 1; month += 1; } // 简化废土历：每月30天
+        if (day > 30) { day = 1; month += 1; } 
         if (month > 12) { month = 1; year += 1; }
         return { year, month, day, hour, minute, second };
       });
@@ -108,30 +106,46 @@ export const Terminal: React.FC<TerminalProps> = ({ active }) => {
   };
 
   const appendAction = (actionText: string) => {
-    if (!inputRef.current) return;
-    
-    const start = inputRef.current.selectionStart;
-    const end = inputRef.current.selectionEnd;
-    const text = input;
-    const before = text.substring(0, start);
-    const after = text.substring(end);
-    
-    setInput(before + actionText + after);
-    
+    setInput(actionText);
+    setIsActionsExpanded(false);
     setTimeout(() => {
       if (inputRef.current) {
         inputRef.current.focus();
-        inputRef.current.setSelectionRange(start + actionText.length, start + actionText.length);
       }
     }, 0);
   };
 
   const actions = [
-    { label: '搜索环境', icon: <Search size={14} />, text: '我仔细观察四周，寻找有用的物资或线索。' },
-    { label: '检视规则', icon: <ShieldAlert size={14} />, text: '我拿出那张皱巴巴的规则纸，试图核对当前的情况。' },
-    { label: '尝试感知', icon: <Eye size={14} />, text: '我闭上眼，感受空气中的震动和那股莫名的恶意。' },
-    { label: '低声自语', icon: <MessageSquare size={14} />, text: '“这里...不对劲。”我小声嘀咕着，试图缓解内心的恐惧。' },
-    { label: '对抗本能', icon: <Zap size={14} />, text: '我强行压制住逃跑的冲动，决定正面面对眼前的阴影。' },
+    { 
+      label: '环境侦察', 
+      icon: <Search size={16} />, 
+      text: '我决定屏住呼吸，轻手轻脚地探索这片死寂的废墟，试图在断壁残垣中寻找可能被前人遗忘的应急物资或是关键的逃生线索，哪怕只有一点点希望。' 
+    },
+    { 
+      label: '规则验证', 
+      icon: <ShieldAlert size={16} />, 
+      text: '我颤抖着从怀里掏出那张染血的规则手册，对照眼前的阴影和怪异声响，拼命确认自己是否还在所谓的“安全准则”保护之下，试图寻找逻辑的漏洞。' 
+    },
+    { 
+      label: '精神同调', 
+      icon: <Eye size={16} />, 
+      text: '我闭上双眼，强迫自己忽略耳边不断回响的疯狂低语，试图利用这种禁忌的感官去捕捉空气中弥漫的异常量子波动，感受那股来自深渊的视线。' 
+    },
+    { 
+      label: '身份重构', 
+      icon: <Cpu size={16} />, 
+      text: '看着镜子中逐渐变得陌生的脸庞，我反复对自己强调着原来的名字和记忆，试图在身体彻底崩坏前保留最后一丝属于“人类”的自尊与清醒的意志。' 
+    },
+    { 
+      label: '因果干预', 
+      icon: <Zap size={16} />, 
+      text: '面对前方那团不可名状的蠕动黑影，我握紧了手中唯一的武器，决定违背生存本能，用一次鲁莽且疯狂的尝试去打破这个循环往复且绝望的梦魇世界。' 
+    },
+    { 
+      label: '紧急求援', 
+      icon: <Radio size={16} />, 
+      text: '我疯狂地调试着手中破旧且满是铁锈的无线电收音机，哪怕只有万分之一的生还可能，我也渴望能在这个被神遗弃的废土中听到除我之外的生命信号。' 
+    },
   ];
 
   if (!active) return null;
@@ -140,14 +154,13 @@ export const Terminal: React.FC<TerminalProps> = ({ active }) => {
 
   return (
     <div className="flex flex-col h-full relative overflow-hidden bg-black text-gray-300 font-mono">
-      {/* Header - 优化 Flex 布局防止换行 */}
+      {/* Header */}
       <div className="flex items-center justify-between p-3 md:p-4 border-b border-white/10 bg-black/80 backdrop-blur-sm z-30 gap-2 overflow-hidden">
         <div className="flex items-center gap-2 min-w-0 flex-shrink-1">
            <TerminalIcon size={18} className="text-white animate-pulse flex-shrink-0" />
            <GlitchText text="ECHOES_CORE" className="text-sm tracking-widest text-gray-400 truncate" />
         </div>
         
-        {/* 时间显示 - 强制不换行且靠右对齐 */}
         <div className="flex items-center gap-2 md:gap-4 bg-white/5 px-2 md:px-3 py-1 border border-white/10 rounded-sm flex-shrink-0 whitespace-nowrap">
           <div className="flex flex-col items-center leading-none border-r border-white/20 pr-2 md:pr-3 whitespace-nowrap">
             <span className="text-[9px] md:text-[10px] text-gray-500 uppercase">Cycle</span>
@@ -163,7 +176,7 @@ export const Terminal: React.FC<TerminalProps> = ({ active }) => {
       </div>
 
       {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 scrollbar-hide pb-32">
+      <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 scrollbar-hide pb-48">
         {messages.map((msg) => (
           <div
             key={msg.id}
@@ -198,31 +211,39 @@ export const Terminal: React.FC<TerminalProps> = ({ active }) => {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input Area */}
-      <div className="absolute bottom-0 left-0 w-full p-4 bg-gradient-to-t from-black via-black to-transparent z-20">
-        <div className="mb-2 flex flex-col items-start max-w-full overflow-hidden">
+      {/* Input & Quick Actions Area */}
+      <div className="absolute bottom-0 left-0 w-full p-4 bg-gradient-to-t from-black via-black/95 to-transparent z-40">
+        <div className="mb-2 flex flex-col items-start w-full">
           <button 
             onClick={() => setIsActionsExpanded(!isActionsExpanded)}
-            className="flex items-center gap-2 px-3 py-1 bg-black border border-white/20 text-[10px] text-gray-500 hover:text-white hover:border-white/50 transition-all rounded-t-sm"
+            className="flex items-center gap-2 px-3 py-2 bg-black border border-white/20 text-[11px] text-gray-400 hover:text-white hover:border-white/50 transition-all rounded-t-sm"
           >
-            {isActionsExpanded ? <ChevronDown size={12} /> : <ChevronUp size={12} />}
-            <span className="uppercase tracking-[0.2em]">Quick_Actions.sh</span>
+            {isActionsExpanded ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+            <span className="uppercase tracking-[0.3em] font-bold">Quick_Actions.sh</span>
           </button>
           
           <div className={`
-            w-full flex gap-2 p-2 bg-black border-x border-t border-white/20 transition-all duration-300 overflow-x-auto no-scrollbar
-            ${isActionsExpanded ? 'max-h-24 opacity-100 translate-y-0' : 'max-h-0 opacity-0 translate-y-2 pointer-events-none'}
+            w-full bg-black border border-white/20 transition-all duration-300 flex flex-col gap-2 overflow-hidden
+            ${isActionsExpanded ? 'max-h-[300px] p-3 opacity-100' : 'max-h-0 p-0 opacity-0 pointer-events-none'}
           `}>
-            {actions.map((action, idx) => (
-              <button
-                key={idx}
-                onClick={() => appendAction(action.text)}
-                className="whitespace-nowrap flex items-center gap-2 px-3 py-2 border border-white/10 bg-white/5 hover:bg-white hover:text-black text-xs transition-all"
-              >
-                {action.icon}
-                {action.label}
-              </button>
-            ))}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 overflow-y-auto pr-1 custom-scrollbar">
+              {actions.map((action, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => appendAction(action.text)}
+                  className="flex flex-col text-left p-3 border border-white/10 bg-white/5 hover:bg-white hover:text-black transition-all group relative"
+                >
+                  <div className="flex items-center gap-2 mb-2 text-cyan-500 group-hover:text-black transition-colors">
+                    {action.icon}
+                    <span className="text-[10px] uppercase tracking-widest font-bold">{action.label}</span>
+                  </div>
+                  <p className="text-xs leading-relaxed opacity-70 group-hover:opacity-100">
+                    {action.text}
+                  </p>
+                  <div className="absolute bottom-1 right-2 text-[8px] opacity-20 group-hover:opacity-50">EXECUTE_0{idx+1}</div>
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
@@ -246,6 +267,18 @@ export const Terminal: React.FC<TerminalProps> = ({ active }) => {
           </button>
         </div>
       </div>
+      
+      <style>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: rgba(255, 255, 255, 0.05);
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: rgba(255, 255, 255, 0.2);
+        }
+      `}</style>
     </div>
   );
 };

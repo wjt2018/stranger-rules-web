@@ -10,28 +10,71 @@ import { InventoryModule } from './components/modules/InventoryModule';
 import { ModuleType } from './types';
 import { User, Map, AlertOctagon, ShoppingCart, Package, PlayCircle } from 'lucide-react';
 
+export interface InventoryItem {
+  name: string;
+  count: number;
+  description: string;
+}
+
 const App = () => {
   const [activeModule, setActiveModule] = useState<ModuleType | null>(null);
   const [showIntro, setShowIntro] = useState(false);
+  
+  // Lifted state for shared data
+  const [credits, setCredits] = useState(1250);
+  const [inventorySlots, setInventorySlots] = useState<(InventoryItem | null)[]>(() => {
+    const initialSlots = Array(20).fill(null);
+    initialSlots[0] = { name: '生锈的小刀', count: 1, description: '虽然已经锈迹斑斑，但在绝境中依然是可靠的防身工具。' };
+    initialSlots[1] = { name: '绷带', count: 3, description: '基础医疗物资，能够止血并防止伤口感染。' };
+    initialSlots[2] = { name: '旧照片', count: 1, description: '一张边缘泛黄的照片，背面写着模糊的地址。看着它能让你感到一丝人性。' };
+    return initialSlots;
+  });
 
   const toggleModule = (type: ModuleType) => {
     setActiveModule(activeModule === type ? null : type);
   };
 
+  const handlePurchase = (itemName: string, price: number, description: string) => {
+    if (credits < price) {
+      return { success: false, message: '信用点不足' };
+    }
+
+    const nextSlots = [...inventorySlots];
+    const existingIndex = nextSlots.findIndex(s => s?.name === itemName);
+
+    if (existingIndex !== -1 && nextSlots[existingIndex]) {
+      // Stack item
+      nextSlots[existingIndex] = { 
+        ...nextSlots[existingIndex]!, 
+        count: nextSlots[existingIndex]!.count + 1 
+      };
+    } else {
+      // Find empty slot
+      const emptyIndex = nextSlots.findIndex(s => s === null);
+      if (emptyIndex === -1) {
+        return { success: false, message: '背包已满' };
+      }
+      nextSlots[emptyIndex] = { name: itemName, count: 1, description: description };
+    }
+
+    setCredits(prev => prev - price);
+    setInventorySlots(nextSlots);
+    return { success: true, message: '购买成功' };
+  };
+
   const renderModuleContent = () => {
     switch (activeModule) {
-      case ModuleType.CHARACTER: return <CharacterSheet />;
+      case ModuleType.CHARACTER: return <CharacterSheet credits={credits} />;
       case ModuleType.QUESTS: return <QuestBoard />;
       case ModuleType.RULES: return <RulesModule />;
-      case ModuleType.SHOP: return <ShopModule />;
-      case ModuleType.INVENTORY: return <InventoryModule />;
+      case ModuleType.SHOP: return <ShopModule credits={credits} onPurchase={handlePurchase} />;
+      case ModuleType.INVENTORY: return <InventoryModule slots={inventorySlots} setSlots={setInventorySlots} />;
       default: return null;
     }
   };
 
   const handleIntroComplete = (data: any) => {
     console.log("玩家初始设定:", data);
-    // 这里未来可以对接 AI 初始化逻辑
     setShowIntro(false);
   };
 

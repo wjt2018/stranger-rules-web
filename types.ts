@@ -14,6 +14,13 @@ export interface ChatMessage {
   timestamp: number;
 }
 
+export interface NPCRelationship {
+  name: string;
+  favorability: number; // 0-100
+  status: string;
+  lastInteractionTurn: number; // 内部逻辑使用，UI 不显示
+}
+
 export interface CharacterStats {
   hp: number;
   maxHp: number;
@@ -21,6 +28,8 @@ export interface CharacterStats {
   maxSanity: number;
   credits: number;
   level: number;
+  statusEffects: string[];
+  relationships: NPCRelationship[];
 }
 
 export interface Quest {
