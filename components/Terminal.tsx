@@ -13,9 +13,11 @@ export const Terminal: React.FC<TerminalProps> = ({ active }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isActionsExpanded, setIsActionsExpanded] = useState(false);
   
-  // 游戏时间状态
+  // 扩展游戏时间状态，包含年月
   const [gameTime, setGameTime] = useState({
-    day: 1,
+    year: 2049,
+    month: 10,
+    day: 7,
     hour: 23,
     minute: 45,
     second: 0
@@ -25,7 +27,7 @@ export const Terminal: React.FC<TerminalProps> = ({ active }) => {
     {
       id: 'init-1',
       sender: 'system',
-      text: '系统正在初始化...\n连接至 [虚空时间线]...\n目标世界：未定义 (等待流浪者指令)\n\n欢迎回来。记住：你有7天时间完成执念，否则你将成为规则的一部分。',
+      text: '系统正在初始化...\n连接至 [异世界]...\n\n你醒了。\n这不是你熟悉的世界\n包括你的身体也变成了陌生的模样。\n\n主线任务：你需要替宿主(即此刻这副身体原本的主人)完成ta最深的愿望。记住：你有7天时间完成，才能逃离这里回到你原本的世界，否则你将永远停留在这里。\n\n每日任务：在这7日里每一天都会对应七宗罪中的其中一罪，你必须在每日0点前完成它。否则会被当场抹杀。\n\n规则怪谈：请遵循每个世界的规则。你说不遵守怎样？哈哈哈哈哈哈你可以试试看。\n\n请及时在下方信息栏查看你的任务和状态。',
       timestamp: Date.now(),
     },
   ]);
@@ -37,12 +39,14 @@ export const Terminal: React.FC<TerminalProps> = ({ active }) => {
   useEffect(() => {
     const timer = setInterval(() => {
       setGameTime(prev => {
-        let { day, hour, minute, second } = prev;
+        let { year, month, day, hour, minute, second } = prev;
         second += 1;
         if (second >= 60) { second = 0; minute += 1; }
         if (minute >= 60) { minute = 0; hour += 1; }
         if (hour >= 24) { hour = 0; day += 1; }
-        return { day, hour, minute, second };
+        if (day > 30) { day = 1; month += 1; } // 简化废土历：每月30天
+        if (month > 12) { month = 1; year += 1; }
+        return { year, month, day, hour, minute, second };
       });
     }, 1000);
     return () => clearInterval(timer);
@@ -89,8 +93,8 @@ export const Terminal: React.FC<TerminalProps> = ({ active }) => {
       };
 
       setMessages(prev => [...prev, narratorMsg]);
-    } catch (e) {
-      console.error(e);
+    } catch (e: any) {
+      console.error("Gemini request failed:", e?.message || e);
     } finally {
       setIsLoading(false);
     }
@@ -103,7 +107,6 @@ export const Terminal: React.FC<TerminalProps> = ({ active }) => {
     }
   };
 
-  // 行动选择器逻辑：追加内容到光标后
   const appendAction = (actionText: string) => {
     if (!inputRef.current) return;
     
@@ -115,7 +118,6 @@ export const Terminal: React.FC<TerminalProps> = ({ active }) => {
     
     setInput(before + actionText + after);
     
-    // 重新聚焦并调整光标位置（在下一帧执行以确保 state 已更新）
     setTimeout(() => {
       if (inputRef.current) {
         inputRef.current.focus();
@@ -138,23 +140,23 @@ export const Terminal: React.FC<TerminalProps> = ({ active }) => {
 
   return (
     <div className="flex flex-col h-full relative overflow-hidden bg-black text-gray-300 font-mono">
-      {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-white/10 bg-black/80 backdrop-blur-sm z-30">
-        <div className="flex items-center gap-2">
-           <TerminalIcon size={18} className="text-white animate-pulse" />
-           <GlitchText text="ECHOES_CORE // UPLINK" className="text-sm tracking-widest text-gray-400" />
+      {/* Header - 优化 Flex 布局防止换行 */}
+      <div className="flex items-center justify-between p-3 md:p-4 border-b border-white/10 bg-black/80 backdrop-blur-sm z-30 gap-2 overflow-hidden">
+        <div className="flex items-center gap-2 min-w-0 flex-shrink-1">
+           <TerminalIcon size={18} className="text-white animate-pulse flex-shrink-0" />
+           <GlitchText text="ECHOES_CORE" className="text-sm tracking-widest text-gray-400 truncate" />
         </div>
         
-        {/* 新增时间显示 */}
-        <div className="flex items-center gap-4 bg-white/5 px-3 py-1 border border-white/10 rounded-sm">
-          <div className="flex flex-col items-center leading-none border-r border-white/20 pr-3">
-            <span className="text-[10px] text-gray-500 uppercase">Cycle</span>
-            <span className="text-sm font-bold text-white">第 {gameTime.day} 天</span>
+        {/* 时间显示 - 强制不换行且靠右对齐 */}
+        <div className="flex items-center gap-2 md:gap-4 bg-white/5 px-2 md:px-3 py-1 border border-white/10 rounded-sm flex-shrink-0 whitespace-nowrap">
+          <div className="flex flex-col items-center leading-none border-r border-white/20 pr-2 md:pr-3 whitespace-nowrap">
+            <span className="text-[9px] md:text-[10px] text-gray-500 uppercase">Cycle</span>
+            <span className="text-xs md:text-sm font-bold text-white whitespace-nowrap">第 {gameTime.day} 天</span>
           </div>
-          <div className="flex flex-col items-end leading-none">
-            <span className="text-[10px] text-gray-500 uppercase">Chronos</span>
-            <span className="text-sm font-bold text-white tracking-widest">
-              {formatNum(gameTime.hour)}:{formatNum(gameTime.minute)}:<span className="text-gray-500">{formatNum(gameTime.second)}</span>
+          <div className="flex flex-col items-end leading-none whitespace-nowrap">
+            <span className="text-[9px] md:text-[10px] text-gray-500 uppercase">Chronos</span>
+            <span className="text-xs md:text-sm font-bold text-white tracking-tighter md:tracking-widest">
+              {gameTime.year},{formatNum(gameTime.month)},{formatNum(gameTime.day)}
             </span>
           </div>
         </div>
@@ -198,8 +200,6 @@ export const Terminal: React.FC<TerminalProps> = ({ active }) => {
 
       {/* Input Area */}
       <div className="absolute bottom-0 left-0 w-full p-4 bg-gradient-to-t from-black via-black to-transparent z-20">
-        
-        {/* 行动选择器 Action Selector */}
         <div className="mb-2 flex flex-col items-start max-w-full overflow-hidden">
           <button 
             onClick={() => setIsActionsExpanded(!isActionsExpanded)}

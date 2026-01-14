@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 
@@ -45,11 +44,12 @@ export const IntroScene: React.FC<IntroSceneProps> = ({ onComplete, onClose }) =
   const narrativeLines = [
     "系统自检启动...",
     "检测到未注册的意识信号。",
-    "你迷路了吗，流浪者？",
-    "或者说...",
-    "你渴望成为这片废土的一部分？",
-    "不要相信你的记忆。不要相信你的眼睛。",
-    "唯一真实的，只有痛苦。"
+    "你迷路了吗，游荡的灵魂？",
+    "这是哪？",
+    "你不需要知道，反正也逃不掉。",
+    "哈哈骗你的，不逃怎么好玩呢？",
+    "别回头，往前走。",
+    "选择你将要前往的次元。"
   ];
 
   // ----------------------------------------------------------------
@@ -61,7 +61,7 @@ export const IntroScene: React.FC<IntroSceneProps> = ({ onComplete, onClose }) =
         setBgOpacity((textIndex + 1) / narrativeLines.length);
         const timeout = setTimeout(() => {
           setTextIndex(prev => prev + 1);
-        }, 1800); // 增加停留时间，因为现在只显一行
+        }, 1800); 
         return () => clearTimeout(timeout);
       } else {
         setShowStartBtn(true);
@@ -74,7 +74,6 @@ export const IntroScene: React.FC<IntroSceneProps> = ({ onComplete, onClose }) =
   // ----------------------------------------------------------------
   useEffect(() => {
     if (step === 1) {
-      // Fix: Cast v to string because Object.values can return unknown[] depending on TS config
       const filledCount = Object.values(formData).filter(v => (v as string).trim().length > 0).length;
       setHorrorLevel(filledCount / 4);
     }
@@ -95,8 +94,8 @@ export const IntroScene: React.FC<IntroSceneProps> = ({ onComplete, onClose }) =
   // ----------------------------------------------------------------
   useEffect(() => {
     if (step === 2 && isZooming) {
-      const totalLines = 40; // 总行数
-      const totalTime = 2000; // 总时长 2s
+      const totalLines = 40; 
+      const totalTime = 2000; 
       const intervalTime = totalTime / totalLines;
       let currentLine = 0;
 
@@ -107,7 +106,6 @@ export const IntroScene: React.FC<IntroSceneProps> = ({ onComplete, onClose }) =
           return;
         }
 
-        // 字号随深度增加：0.8rem -> 5rem
         const progress = currentLine / totalLines;
         const fontSize = 0.8 + (progress * 4.2);
         
@@ -180,7 +178,7 @@ export const IntroScene: React.FC<IntroSceneProps> = ({ onComplete, onClose }) =
         }}
       />
 
-      {/* Step 1 背景: 继承 Phase 2 的腐化与抖动 */}
+      {/* Step 1 背景 */}
       <div 
         key="bg-phase-1"
         className="absolute inset-0 bg-cover bg-center transition-opacity duration-500"
@@ -194,7 +192,7 @@ export const IntroScene: React.FC<IntroSceneProps> = ({ onComplete, onClose }) =
         <div className="absolute inset-0 bg-black/50"></div>
       </div>
 
-      {/* Step 2 背景: GIF 继承所有效果并缩放 */}
+      {/* Step 2 背景 */}
       {step === 2 && (
         <div 
             key="bg-phase-2-wrapper"
@@ -220,7 +218,6 @@ export const IntroScene: React.FC<IntroSceneProps> = ({ onComplete, onClose }) =
       {/* 界面层 */}
       <div className="relative z-30 w-full h-full flex flex-col items-center justify-center p-6">
         
-        {/* === STEP 0: 叙事 (单句模式) === */}
         {step === 0 && textIndex < narrativeLines.length && (
           <div className="max-w-2xl text-center">
             <p 
@@ -239,32 +236,46 @@ export const IntroScene: React.FC<IntroSceneProps> = ({ onComplete, onClose }) =
                onClick={() => setStep(1)}
                className="px-12 py-4 border-2 border-white/50 bg-black/50 text-white hover:bg-white hover:text-black transition-all tracking-[0.5em] uppercase text-sm font-bold animate-pulse"
              >
-               开始游戏
+               进入游戏
              </button>
           </div>
         )}
 
-        {/* === STEP 1: 表单 === */}
         {step === 1 && (
           <div className="w-full max-w-lg space-y-6 relative">
             <h2 className="text-center text-3xl md:text-5xl font-black uppercase tracking-tighter mb-8" style={{ color: horrorLevel > 0.5 ? '#800' : '#fff', ...getJitterStyle(horrorLevel, 1.5) }}>
               {horrorLevel > 0.8 ? "RUN AWAY" : "Identity Override"}
             </h2>
             <div className="space-y-6 p-6 transition-all duration-300" style={{ background: `rgba(0, 0, 0, ${0.5 + horrorLevel * 0.3})`, border: '1px solid rgba(255,255,255,0.1)', ...getJitterStyle(horrorLevel) }}>
-                <GlitchInput label="代号 / CODENAME" value={formData.codeName} onChange={(v: string) => setFormData({...formData, codeName: v})} horrorLevel={horrorLevel} jitterStyle={getJitterStyle(horrorLevel, 0.8)} />
+                <GlitchInput label="告诉我你的名字，虽然即将没用了，但是还是象征性的问下你吧" value={formData.codeName} onChange={(v: string) => setFormData({...formData, codeName: v})} horrorLevel={horrorLevel} jitterStyle={getJitterStyle(horrorLevel, 0.8)} />
                 <div className="space-y-2" style={getJitterStyle(horrorLevel, 0.9)}>
-                    <label className={`text-xs uppercase tracking-widest ${horrorLevel > 0.5 ? 'text-red-500' : 'text-gray-500'}`}>生理性别 / GENDER</label>
+                    <label className={`text-xs uppercase tracking-widest ${horrorLevel > 0.5 ? 'text-red-500' : 'text-gray-500'}`}>告诉我你想成为…</label>
                     <div className="flex gap-2">
-                        {['MALE', 'FEMALE', 'OTHER'].map(g => (
+                        {['男', '女', '其他'].map(g => (
                             <button key={g} onClick={() => setFormData({...formData, gender: g})} className={`flex-1 py-3 text-xs border transition-all ${formData.gender === g ? 'bg-white text-black border-white' : 'border-white/20 text-gray-500'}`}>{g}</button>
                         ))}
                     </div>
                 </div>
-                <GlitchInput label="锚定坐标 / ANCHOR" value={formData.anchor} onChange={(v: string) => setFormData({...formData, anchor: v})} horrorLevel={horrorLevel} jitterStyle={getJitterStyle(horrorLevel, 0.7)} />
-                <GlitchInput label="其他信息 / UNKNOWN" value={formData.extra} onChange={(v: string) => setFormData({...formData, extra: v})} horrorLevel={horrorLevel} isArea jitterStyle={getJitterStyle(horrorLevel, 1.1)} />
+                <GlitchInput 
+                  label="告诉我你要去哪里完成救赎" 
+                  placeholder="选择你即将前往的世界背景，寂静岭？中世纪魔幻？怪奇物语？古代权谋？武侠修仙？…" 
+                  value={formData.anchor} 
+                  onChange={(v: string) => setFormData({...formData, anchor: v})} 
+                  horrorLevel={horrorLevel} 
+                  jitterStyle={getJitterStyle(horrorLevel, 0.7)} 
+                />
+                <GlitchInput 
+                  label="其他需求？你写吧，反正我也不一定会满足你" 
+                  placeholder="对你即将前往的世界的任何愿望，包括但不限于你对于新身份的期望？世界背景补充？…" 
+                  value={formData.extra} 
+                  onChange={(v: string) => setFormData({...formData, extra: v})} 
+                  horrorLevel={horrorLevel} 
+                  isArea 
+                  jitterStyle={getJitterStyle(horrorLevel, 1.1)} 
+                />
             </div>
             <button onClick={() => setStep(2)} disabled={horrorLevel < 0.75} className="w-full py-4 text-xl font-black uppercase tracking-[0.5em] transition-all" style={{ background: horrorLevel > 0.8 ? '#500' : '#fff', color: horrorLevel > 0.8 ? '#f00' : '#000', opacity: horrorLevel < 0.75 ? 0.3 : 1, ...getHeartbeatStyle(horrorLevel) }}>
-                {horrorLevel === 1 ? "进 入 (ENTER)" : "等待同步..."}
+                {horrorLevel === 1 ? "RUNNN!!!!" : "等待同步..."}
             </button>
           </div>
         )}
@@ -272,7 +283,6 @@ export const IntroScene: React.FC<IntroSceneProps> = ({ onComplete, onClose }) =
         <button onClick={onClose} className="absolute top-4 right-4 opacity-30 hover:opacity-100 z-[60]"><X /></button>
       </div>
 
-      {/* === STEP 2: 文字瀑布层 === */}
       {step === 2 && isZooming && (
           <div className="absolute inset-0 z-[200] overflow-hidden pointer-events-none">
               {bloodTexts.map(bt => (
@@ -317,7 +327,7 @@ export const IntroScene: React.FC<IntroSceneProps> = ({ onComplete, onClose }) =
   );
 };
 
-const GlitchInput = ({ label, value, onChange, horrorLevel, isArea, jitterStyle }: any) => {
+const GlitchInput = ({ label, value, onChange, horrorLevel, isArea, jitterStyle, placeholder }: any) => {
     const inputStyle = {
         borderColor: horrorLevel > 0.5 ? `rgba(150, 0, 0, 0.5)` : 'rgba(255,255,255,0.2)',
         backgroundColor: 'rgba(0,0,0,0.5)',
@@ -328,9 +338,22 @@ const GlitchInput = ({ label, value, onChange, horrorLevel, isArea, jitterStyle 
         <div className="space-y-2" style={jitterStyle}>
             <label className={`text-xs uppercase tracking-widest ${horrorLevel > 0.5 ? 'text-red-500' : 'text-gray-500'}`}>{label}</label>
             {isArea ? (
-                <textarea value={value} onChange={e => onChange(e.target.value)} className="w-full p-3 bg-black/50 border outline-none font-serif h-24 resize-none" style={inputStyle} />
+                <textarea 
+                  value={value} 
+                  onChange={e => onChange(e.target.value)} 
+                  placeholder={placeholder}
+                  className="w-full p-3 bg-black/50 border outline-none font-serif h-24 resize-none text-sm placeholder:text-gray-700" 
+                  style={inputStyle} 
+                />
             ) : (
-                <input type="text" value={value} onChange={e => onChange(e.target.value)} className="w-full p-3 bg-black/50 border outline-none font-serif" style={inputStyle} />
+                <input 
+                  type="text" 
+                  value={value} 
+                  onChange={e => onChange(e.target.value)} 
+                  placeholder={placeholder}
+                  className="w-full p-3 bg-black/50 border outline-none font-serif text-sm placeholder:text-gray-700" 
+                  style={inputStyle} 
+                />
             )}
         </div>
     );
