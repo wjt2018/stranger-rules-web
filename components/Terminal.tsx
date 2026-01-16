@@ -6,9 +6,10 @@ import { GlitchText } from './GlitchText';
 
 interface TerminalProps {
   active: boolean;
+  llmConfig: { model: string; temperature: number };
 }
 
-export const Terminal: React.FC<TerminalProps> = ({ active }) => {
+export const Terminal: React.FC<TerminalProps> = ({ active, llmConfig }) => {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isActionsExpanded, setIsActionsExpanded] = useState(false);
@@ -81,7 +82,7 @@ export const Terminal: React.FC<TerminalProps> = ({ active }) => {
           parts: [{ text: m.text }],
         }));
 
-      const responseText = await sendMessageToGemini(history, userMsg.text);
+      const responseText = await sendMessageToGemini(history, userMsg.text, llmConfig);
 
       const narratorMsg: ChatMessage = {
         id: (Date.now() + 1).toString(),

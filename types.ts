@@ -5,6 +5,8 @@ export enum ModuleType {
   INVENTORY = 'INVENTORY',
   RULES = 'RULES',
   SHOP = 'SHOP',
+  SOCIAL_LINK = 'SOCIAL_LINK',
+  SETTINGS = 'SETTINGS',
 }
 
 export interface ChatMessage {

@@ -7,8 +7,10 @@ import { QuestBoard } from './components/modules/QuestBoard';
 import { RulesModule } from './components/modules/RulesModule';
 import { ShopModule } from './components/modules/ShopModule';
 import { InventoryModule } from './components/modules/InventoryModule';
+import { SocialLink } from './components/modules/SocialLink';
+import { SettingsModule } from './components/modules/SettingsModule';
 import { ModuleType } from './types';
-import { User, Map, AlertOctagon, ShoppingCart, Package, PlayCircle } from 'lucide-react';
+import { User, Map, AlertOctagon, ShoppingCart, Package, PlayCircle, Users, Settings } from 'lucide-react';
 
 export interface InventoryItem {
   name: string;
@@ -20,7 +22,7 @@ const App = () => {
   const [activeModule, setActiveModule] = useState<ModuleType | null>(null);
   const [showIntro, setShowIntro] = useState(false);
   
-  // Lifted state for shared data
+  // Shared game state
   const [credits, setCredits] = useState(1250);
   const [inventorySlots, setInventorySlots] = useState<(InventoryItem | null)[]>(() => {
     const initialSlots = Array(20).fill(null);
@@ -28,6 +30,12 @@ const App = () => {
     initialSlots[1] = { name: '绷带', count: 3, description: '基础医疗物资，能够止血并防止伤口感染。' };
     initialSlots[2] = { name: '旧照片', count: 1, description: '一张边缘泛黄的照片，背面写着模糊的地址。看着它能让你感到一丝人性。' };
     return initialSlots;
+  });
+
+  // LLM Configuration state
+  const [llmConfig, setLlmConfig] = useState({
+    model: 'gemini-3-flash-preview',
+    temperature: 0.8,
   });
 
   const toggleModule = (type: ModuleType) => {
@@ -43,13 +51,11 @@ const App = () => {
     const existingIndex = nextSlots.findIndex(s => s?.name === itemName);
 
     if (existingIndex !== -1 && nextSlots[existingIndex]) {
-      // Stack item
       nextSlots[existingIndex] = { 
         ...nextSlots[existingIndex]!, 
         count: nextSlots[existingIndex]!.count + 1 
       };
     } else {
-      // Find empty slot
       const emptyIndex = nextSlots.findIndex(s => s === null);
       if (emptyIndex === -1) {
         return { success: false, message: '背包已满' };
@@ -69,12 +75,13 @@ const App = () => {
       case ModuleType.RULES: return <RulesModule />;
       case ModuleType.SHOP: return <ShopModule credits={credits} onPurchase={handlePurchase} />;
       case ModuleType.INVENTORY: return <InventoryModule slots={inventorySlots} setSlots={setInventorySlots} />;
+      case ModuleType.SOCIAL_LINK: return <SocialLink />;
+      case ModuleType.SETTINGS: return <SettingsModule llmConfig={llmConfig} onConfigChange={setLlmConfig} />;
       default: return null;
     }
   };
 
   const handleIntroComplete = (data: any) => {
-    console.log("玩家初始设定:", data);
     setShowIntro(false);
   };
 
@@ -83,7 +90,7 @@ const App = () => {
       {/* Background Ambience */}
       <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-gray-900/20 via-black to-black z-0"></div>
 
-      {/* 开局引导页覆盖层 */}
+      {/* Intro Scene Overlay */}
       {showIntro && (
         <IntroScene 
           onComplete={handleIntroComplete} 
@@ -93,7 +100,7 @@ const App = () => {
 
       {/* Main Content Area (Terminal) */}
       <main className="flex-1 relative z-10 flex flex-col overflow-hidden">
-        <Terminal active={true} />
+        <Terminal active={true} llmConfig={llmConfig} />
         
         {/* Module Overlay */}
         {activeModule && (
@@ -104,48 +111,60 @@ const App = () => {
       </main>
 
       {/* Navigation Bar */}
-      <nav className="h-16 md:h-20 bg-black border-t border-white/20 z-50 flex items-center justify-around md:justify-center md:gap-8 px-2">
+      <nav className="h-16 md:h-20 bg-black border-t border-white/20 z-50 flex items-center justify-around md:justify-center md:gap-6 lg:gap-8 px-2">
         <NavButton 
-          icon={<User size={20} />} 
-          label="状态" 
+          icon={<User size={18} />} 
+          label="档案" 
           active={activeModule === ModuleType.CHARACTER} 
           onClick={() => toggleModule(ModuleType.CHARACTER)} 
         />
         <NavButton 
-          icon={<Map size={20} />} 
+          icon={<Users size={18} />} 
+          label="羁绊" 
+          active={activeModule === ModuleType.SOCIAL_LINK} 
+          onClick={() => toggleModule(ModuleType.SOCIAL_LINK)} 
+        />
+        <NavButton 
+          icon={<Map size={18} />} 
           label="任务" 
           active={activeModule === ModuleType.QUESTS} 
           onClick={() => toggleModule(ModuleType.QUESTS)} 
         />
         <NavButton 
-          icon={<AlertOctagon size={20} />} 
+          icon={<AlertOctagon size={18} />} 
           label="规则" 
           active={activeModule === ModuleType.RULES} 
           onClick={() => toggleModule(ModuleType.RULES)} 
           danger
         />
         <NavButton 
-          icon={<Package size={20} />} 
+          icon={<Package size={18} />} 
           label="物品" 
           active={activeModule === ModuleType.INVENTORY} 
           onClick={() => toggleModule(ModuleType.INVENTORY)} 
         />
         <NavButton 
-          icon={<ShoppingCart size={20} />} 
+          icon={<ShoppingCart size={18} />} 
           label="商店" 
           active={activeModule === ModuleType.SHOP} 
           onClick={() => toggleModule(ModuleType.SHOP)} 
         />
+        <NavButton 
+          icon={<Settings size={18} />} 
+          label="设置" 
+          active={activeModule === ModuleType.SETTINGS} 
+          onClick={() => toggleModule(ModuleType.SETTINGS)} 
+        />
         
-        {/* 调试用引导按钮 */}
-        <div className="w-[1px] h-6 bg-white/10 mx-1 hidden md:block"></div>
+        {/* Debug/Intro Trigger */}
+        <div className="w-[1px] h-6 bg-white/10 mx-1 hidden lg:block"></div>
         <button
           onClick={() => setShowIntro(true)}
           className="flex flex-col items-center justify-center gap-1 p-2 md:p-3 rounded-sm text-cyan-500 hover:text-cyan-400 hover:bg-cyan-500/10 transition-all border border-cyan-500/20"
           title="预览开局引导"
         >
-          <PlayCircle size={20} />
-          <span className="text-[10px] font-mono tracking-widest hidden md:block">引导预览</span>
+          <PlayCircle size={18} />
+          <span className="text-[9px] font-mono tracking-widest hidden md:block uppercase font-bold">Intro</span>
         </button>
       </nav>
     </div>
@@ -175,7 +194,7 @@ const NavButton: React.FC<NavButtonProps> = ({ icon, label, active, onClick, dan
     <div className={`transition-transform duration-300 ${active ? 'scale-110' : 'group-hover:scale-110'}`}>
       {icon}
     </div>
-    <span className="text-[10px] font-mono tracking-widest hidden md:block">{label}</span>
+    <span className="text-[9px] font-mono tracking-widest hidden md:block uppercase font-bold">{label}</span>
     {active && <div className="md:hidden w-1 h-1 bg-black rounded-full absolute bottom-1"></div>}
   </button>
 );

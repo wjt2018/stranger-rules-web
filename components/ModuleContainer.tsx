@@ -15,6 +15,8 @@ const MODULE_TITLES: Record<ModuleType, string> = {
   [ModuleType.INVENTORY]: '物品清单',
   [ModuleType.RULES]: '生存协议',
   [ModuleType.SHOP]: '补给商店',
+  [ModuleType.SOCIAL_LINK]: '社会羁绊',
+  [ModuleType.SETTINGS]: '系统设置',
 };
 
 export const ModuleContainer: React.FC<ModuleContainerProps> = ({ type, onClose, children }) => {

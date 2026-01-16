@@ -1,8 +1,6 @@
-
 import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
 
 // Initialize the client
-// The API key is guaranteed to be available in process.env.API_KEY by the environment
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 const SYSTEM_INSTRUCTION = `
@@ -24,17 +22,17 @@ The player is a "Drifter" (流浪者) in Sector 0. They have just woken up in a 
 
 export const sendMessageToGemini = async (
   history: { role: string; parts: { text: string }[] }[],
-  message: string
+  message: string,
+  config?: { model: string; temperature: number }
 ): Promise<string> => {
   try {
     const chat = ai.chats.create({
-      model: 'gemini-3-flash-preview',
+      model: config?.model || 'gemini-3-flash-preview',
       config: {
         systemInstruction: SYSTEM_INSTRUCTION,
-        temperature: 0.8, // Creative but somewhat consistent
-        // Set both maxOutputTokens and thinkingConfig.thinkingBudget at the same time to avoid empty responses
-        maxOutputTokens: 500,
-        thinkingConfig: { thinkingBudget: 100 },
+        temperature: config?.temperature ?? 0.8,
+        maxOutputTokens: 1000,
+        thinkingConfig: { thinkingBudget: 200 },
       },
       history: history,
     });
@@ -43,7 +41,6 @@ export const sendMessageToGemini = async (
       message: message,
     });
 
-    // Directly access the text property as per GenerateContentResponse definition
     return result.text || "...信号中断...";
   } catch (error) {
     console.error("Gemini API Error:", error);
