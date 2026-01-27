@@ -1,17 +1,83 @@
-import React from 'react';
-import { Settings, Cpu, Github, Globe, Zap, ShieldCheck, Thermometer } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Settings, Cpu, Github, Globe, Zap, ShieldCheck, Thermometer, Database, Key, Server, RefreshCw } from 'lucide-react';
+import { fetchModelList } from '../../services/geminiService';
 
 interface SettingsModuleProps {
-  llmConfig: { model: string; temperature: number };
-  onConfigChange: (newConfig: { model: string; temperature: number }) => void;
+  llmConfig: { 
+    model: string; 
+    temperature: number;
+    endpoint: string;
+    apiKey: string;
+  };
+  onConfigChange: (newConfig: { 
+    model: string; 
+    temperature: number;
+    endpoint: string;
+    apiKey: string; 
+  }) => void;
 }
 
 export const SettingsModule: React.FC<SettingsModuleProps> = ({ llmConfig, onConfigChange }) => {
+  const [isTesting, setIsTesting] = useState(false);
+  const [testStatus, setTestStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [availableModels, setAvailableModels] = useState<string[]>([]);
+  const [statusMessage, setStatusMessage] = useState('');
+
+  const isSystemMode = !llmConfig.apiKey && !!(process.env.GEMINI_API_KEY || process.env.API_KEY);
+
+  const defaultModels = isSystemMode 
+    ? [process.env.GEMINI_API_MODEL || 'gemini-2.5-pro'] 
+    : ['gemini-2.5-pro'];
+
+  const handleTestConnection = async () => {
+    if (isSystemMode) {
+      setTestStatus('idle'); // Or stay idle
+      setStatusMessage('使用系统默认配置 (System Mode) - 无法手动拉取模型列表');
+      return;
+    }
+
+    // Check valid key (Legacy check, though isSystemMode covers the visible part)
+    if (!llmConfig.apiKey) {
+      setTestStatus('error');
+      setStatusMessage('请先输入 API Key');
+      return;
+    }
+
+    setIsTesting(true);
+    setTestStatus('idle');
+    setStatusMessage('正在连接神经漫游网络...');
+    
+    try {
+      const models = await fetchModelList(llmConfig.endpoint, llmConfig.apiKey);
+      setAvailableModels(models);
+      setTestStatus('success');
+      setStatusMessage(`连接成功: 同步 ${models.length} 个模型节点`);
+      
+      // 如果当前模型不在列表中，自动切换到第一个可用模型
+      if (models.length > 0 && !models.includes(llmConfig.model)) {
+        onConfigChange({ ...llmConfig, model: models[0] });
+      }
+    } catch (error: any) {
+      console.error(error);
+      setTestStatus('error');
+      setStatusMessage('连接失败: 无法访问目标节点');
+    } finally {
+      setIsTesting(false);
+    }
+  };
+
+  const getModelList = () => {
+    if (isSystemMode) {
+      return [process.env.GEMINI_API_MODEL || 'gemini-2.5-pro'];
+    }
+    return availableModels.length > 0 ? availableModels : defaultModels;
+  };
+
   return (
-    <div className="p-6 min-h-full flex flex-col gap-8 bg-black text-white font-mono animate-in zoom-in-95 duration-500">
+    <div className="p-6 min-h-full flex flex-col gap-8 bg-black text-white font-mono animate-in zoom-in-95 duration-500 overflow-y-auto">
       <div className="border-b border-white/20 pb-4 flex justify-between items-center shrink-0">
         <div className="flex flex-col">
-          <span className="text-[10px] text-gray-500 uppercase tracking-[0.4em] mb-1">System_Config_v4.2</span>
+          <span className="text-[10px] text-gray-500 uppercase tracking-[0.4em] mb-1">System_Config_v4.5</span>
           <h2 className="text-2xl font-bold uppercase tracking-widest flex items-center gap-2">
             <Settings size={20} /> 系统设置
           </h2>
@@ -26,20 +92,74 @@ export const SettingsModule: React.FC<SettingsModuleProps> = ({ llmConfig, onCon
           </h3>
           <div className="grid grid-cols-1 gap-6">
             <div className="p-4 bg-white/5 border border-white/10 flex flex-col gap-4 relative overflow-hidden">
+               
+               {/* API Config Area */}
+               <div className="flex flex-col gap-4 border-b border-white/10 pb-4 mb-2">
+                 <div className="flex flex-col gap-2">
+                   <label className="text-[10px] text-gray-500 uppercase tracking-widest flex items-center gap-1">
+                     <Server size={10} /> API 网关地址 (Endpoint)
+                   </label>
+                   <input 
+                     type="text"
+                     placeholder={process.env.GEMINI_API_ENDPOINT ? "System Configured (Hidden)" : "https://generativelanguage.googleapis.com"}
+                     value={llmConfig.endpoint === process.env.GEMINI_API_ENDPOINT ? '' : llmConfig.endpoint}
+                     onChange={(e) => onConfigChange({ ...llmConfig, endpoint: e.target.value })}
+                     className="bg-black text-cyan-500 border border-white/20 p-2 text-xs outline-none focus:border-cyan-500 transition-colors font-mono tracking-wider"
+                   />
+                 </div>
+
+                 <div className="flex flex-col gap-2">
+                   <label className="text-[10px] text-gray-500 uppercase tracking-widest flex items-center gap-1">
+                     <Key size={10} /> 访问密钥 (API Key)
+                   </label>
+                   <div className="flex gap-2">
+                     <input 
+                       type="password"
+                       placeholder={(process.env.GEMINI_API_KEY || process.env.API_KEY) ? "System Configured (Hidden)" : "sk-..."}
+                       value={(llmConfig.apiKey === process.env.GEMINI_API_KEY || llmConfig.apiKey === process.env.API_KEY) ? '' : llmConfig.apiKey}
+                       onChange={(e) => onConfigChange({ ...llmConfig, apiKey: e.target.value })}
+                       className="flex-1 bg-black text-yellow-500 border border-white/20 p-2 text-xs outline-none focus:border-yellow-500 transition-colors font-mono tracking-wider"
+                     />
+                     <button
+                       onClick={handleTestConnection}
+                       disabled={isTesting || isSystemMode}
+                       className={`
+                         px-3 py-1 flex items-center gap-2 text-xs font-bold uppercase tracking-wider border transition-all
+                         ${(isTesting || isSystemMode) ? 'text-gray-500 border-gray-700 cursor-not-allowed opacity-50' : 'text-black bg-white hover:bg-cyan-400 border-white hover:border-cyan-400'}
+                       `}
+                     >
+                       {isTesting ? <RefreshCw size={12} className="animate-spin" /> : <Zap size={12} />}
+                       {isTesting ? 'Ping...' : isSystemMode ? 'Sys_Lock' : 'Test'}
+                     </button>
+                   </div>
+                   {statusMessage && (
+                     <div className={`text-[10px] uppercase tracking-wider flex items-center gap-1
+                       ${testStatus === 'success' ? 'text-green-500' : testStatus === 'error' ? 'text-red-500' : 'text-gray-400'}
+                     `}>
+                       <span>{statusMessage}</span>
+                     </div>
+                   )}
+                 </div>
+               </div>
+
+               {/* Model Selection */}
                <div className="flex flex-col gap-2">
-                 <label className="text-[10px] text-gray-500 uppercase tracking-widest">驱动模型引擎</label>
+                 <label className="text-[10px] text-gray-500 uppercase tracking-widest flex items-center gap-1">
+                   <Database size={10} /> 模型引擎 (Model Engine)
+                 </label>
                  <select 
                    value={llmConfig.model}
                    onChange={(e) => onConfigChange({ ...llmConfig, model: e.target.value })}
                    className="bg-black text-white border border-white/20 p-2 text-sm outline-none focus:border-cyan-500 transition-colors font-bold uppercase tracking-tighter"
                  >
-                   <option value="gemini-3-flash-preview">Gemini 3 Flash (极速响应)</option>
-                   <option value="gemini-3-pro-preview">Gemini 3 Pro (深度推演)</option>
-                   <option value="gemini-2.5-flash-lite-latest">Gemini 2.5 Flash Lite (资源节省)</option>
+                   {getModelList().map(model => (
+                     <option key={model} value={model}>{model.toUpperCase()}</option>
+                   ))}
                  </select>
                </div>
 
-               <div className="flex flex-col gap-2">
+               {/* Temperature Slider */}
+               <div className="flex flex-col gap-2 mt-2">
                  <div className="flex justify-between items-center">
                    <label className="text-[10px] text-gray-500 uppercase tracking-widest flex items-center gap-1">
                      <Thermometer size={10} /> 逻辑发散度 (Temperature)
@@ -62,8 +182,10 @@ export const SettingsModule: React.FC<SettingsModuleProps> = ({ llmConfig, onCon
                </div>
 
                <div className="absolute top-2 right-2 flex items-center gap-1">
-                 <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
-                 <span className="text-[8px] text-green-500 uppercase">Synchronized</span>
+                 <div className={`w-1.5 h-1.5 rounded-full ${testStatus === 'success' ? 'bg-green-500 animate-pulse' : 'bg-gray-700'}`}></div>
+                 <span className={`text-[8px] uppercase ${testStatus === 'success' ? 'text-green-500' : 'text-gray-700'}`}>
+                   {testStatus === 'success' ? 'Link_Active' : 'Offline'}
+                 </span>
                </div>
             </div>
           </div>
@@ -91,27 +213,7 @@ export const SettingsModule: React.FC<SettingsModuleProps> = ({ llmConfig, onCon
           </a>
         </section>
 
-        {/* Diagnostic Data */}
-        <section className="bg-white/5 border border-white/10 p-4">
-          <div className="flex items-center gap-2 mb-4 text-xs font-bold uppercase tracking-widest text-gray-400">
-             <ShieldCheck size={14} /> 系统自检报告
-          </div>
-          <div className="grid grid-cols-3 gap-2">
-             {[
-               { k: "内核", v: "0x82A" },
-               { k: "延迟", v: "42ms" },
-               { k: "同步", v: "OK" },
-               { k: "区域", v: "S0_WEST" },
-               { k: "加密", v: "RSA_4K" },
-               { k: "模型状态", v: "ACTIVE" }
-             ].map((d, i) => (
-               <div key={i} className="flex flex-col border border-white/5 p-2 bg-black/40">
-                  <span className="text-[8px] text-gray-600 uppercase">{d.k}</span>
-                  <span className="text-xs font-bold text-white/80">{d.v}</span>
-               </div>
-             ))}
-          </div>
-        </section>
+
       </div>
 
       <div className="mt-auto text-center">

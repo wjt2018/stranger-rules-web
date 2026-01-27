@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Terminal } from './components/Terminal';
 import { ModuleContainer } from './components/ModuleContainer';
 import { IntroScene } from './components/IntroScene';
@@ -18,6 +18,8 @@ export interface InventoryItem {
   description: string;
 }
 
+import { getConfig, saveConfig } from './services/db';
+
 const App = () => {
   const [activeModule, setActiveModule] = useState<ModuleType | null>(null);
   const [showIntro, setShowIntro] = useState(false);
@@ -34,9 +36,49 @@ const App = () => {
 
   // LLM Configuration state
   const [llmConfig, setLlmConfig] = useState({
-    model: 'gemini-3-flash-preview',
+    model: 'gemini-2.5-pro',
     temperature: 0.8,
+    endpoint: '',
+    apiKey: '',
   });
+
+  // Load config from IndexedDB on mount
+  useEffect(() => {
+    const loadSettings = async () => {
+      const savedConfig = await getConfig();
+      if (savedConfig) {
+        // Sanitize: If saved config matches invisible env vars, clear it from UI state
+        // This prevents old persisted values from showing up after we decided to hide them
+        const sanitizedConfig = { ...savedConfig };
+        
+        if (process.env.GEMINI_API_ENDPOINT && savedConfig.endpoint === process.env.GEMINI_API_ENDPOINT) {
+          sanitizedConfig.endpoint = '';
+        }
+        
+        // Also check if matches standard default, just in case
+        if (savedConfig.endpoint === 'https://generativelanguage.googleapis.com') {
+           // Optional: keep it or clear it? Let's keep specific env var sanitization focus
+        }
+
+        if (process.env.GEMINI_API_KEY && savedConfig.apiKey === process.env.GEMINI_API_KEY) {
+          sanitizedConfig.apiKey = '';
+        }
+        
+        setLlmConfig(sanitizedConfig);
+      }
+    };
+    loadSettings();
+  }, []);
+
+  // Save config to IndexedDB whenever it changes
+  useEffect(() => {
+    if (llmConfig.apiKey) { // Only save if there's meaningful data (optional check)
+      const timer = setTimeout(() => {
+        saveConfig(llmConfig);
+      }, 500); // 500ms debounce
+      return () => clearTimeout(timer);
+    }
+  }, [llmConfig]);
 
   const toggleModule = (type: ModuleType) => {
     setActiveModule(activeModule === type ? null : type);

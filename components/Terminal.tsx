@@ -6,7 +6,12 @@ import { GlitchText } from './GlitchText';
 
 interface TerminalProps {
   active: boolean;
-  llmConfig: { model: string; temperature: number };
+  llmConfig: { 
+    model: string; 
+    temperature: number;
+    endpoint?: string;
+    apiKey?: string;
+  };
 }
 
 export const Terminal: React.FC<TerminalProps> = ({ active, llmConfig }) => {
@@ -57,7 +62,7 @@ export const Terminal: React.FC<TerminalProps> = ({ active, llmConfig }) => {
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages, active]);
+  }, [messages, active, isActionsExpanded]);
 
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
@@ -156,10 +161,10 @@ export const Terminal: React.FC<TerminalProps> = ({ active, llmConfig }) => {
   return (
     <div className="flex flex-col h-full relative overflow-hidden bg-black text-gray-300 font-mono">
       {/* Header */}
-      <div className="flex items-center justify-between p-3 md:p-4 border-b border-white/10 bg-black/80 backdrop-blur-sm z-30 gap-2 overflow-hidden">
+      <div className="flex items-center justify-between p-3 md:p-4 border-b border-white/10 bg-black/80 backdrop-blur-sm z-30 gap-2 overflow-hidden flex-shrink-0">
         <div className="flex items-center gap-2 min-w-0 flex-shrink-1">
            <TerminalIcon size={18} className="text-white animate-pulse flex-shrink-0" />
-           <GlitchText text="ECHOES_CORE" className="text-sm tracking-widest text-gray-400 truncate" />
+           <GlitchText text="/root: TERMINAL_7_DAYS" className="text-sm tracking-widest text-gray-400 truncate" />
         </div>
         
         <div className="flex items-center gap-2 md:gap-4 bg-white/5 px-2 md:px-3 py-1 border border-white/10 rounded-sm flex-shrink-0 whitespace-nowrap">
@@ -170,14 +175,14 @@ export const Terminal: React.FC<TerminalProps> = ({ active, llmConfig }) => {
           <div className="flex flex-col items-end leading-none whitespace-nowrap">
             <span className="text-[9px] md:text-[10px] text-gray-500 uppercase">Chronos</span>
             <span className="text-xs md:text-sm font-bold text-white tracking-tighter md:tracking-widest">
-              {gameTime.year},{formatNum(gameTime.month)},{formatNum(gameTime.day)}
+              {gameTime.year}.{formatNum(gameTime.month)}.{formatNum(gameTime.day)} <span className="text-cyan-500">{formatNum(gameTime.hour)}:{formatNum(gameTime.minute)}</span>
             </span>
           </div>
         </div>
       </div>
 
       {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 scrollbar-hide pb-48">
+      <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 scrollbar-hide pb-4">
         {messages.map((msg) => (
           <div
             key={msg.id}
@@ -213,7 +218,7 @@ export const Terminal: React.FC<TerminalProps> = ({ active, llmConfig }) => {
       </div>
 
       {/* Input & Quick Actions Area */}
-      <div className="absolute bottom-0 left-0 w-full p-4 bg-gradient-to-t from-black via-black/95 to-transparent z-40">
+      <div className="flex-shrink-0 w-full p-4 bg-black border-t border-white/10 z-40">
         <div className="mb-2 flex flex-col items-start w-full">
           <button 
             onClick={() => setIsActionsExpanded(!isActionsExpanded)}
