@@ -25,7 +25,32 @@ const App = () => {
   const [showIntro, setShowIntro] = useState(false);
   
   // Shared game state
+  const [hp, setHp] = useState(100);
+  const [san, setSan] = useState(80);
   const [credits, setCredits] = useState(1250);
+  const [location, setLocation] = useState('Safehouse');
+  
+  const [gameTime, setGameTime] = useState({
+    day: 1,
+    hour: 23,
+    minute: 45
+  });
+
+  const [questLog, setQuestLog] = useState({
+    main_mission: "替宿主完成最后的执念，开启回归之门。",
+    daily_mission: "【暴食】今日任务结算中...",
+    active_rules: ["禁止直视月亮", "听到敲门声必须在3秒内回应"]
+  });
+
+  const [npcStatus, setNpcStatus] = useState<any[]>([
+    { name: '神秘商人', affinity: 0, last_seen_turns: 99 }
+  ]);
+  
+  const [shopInventory, setShopInventory] = useState<any[]>([
+    { name: '面包', price: 50 },
+    { name: '纯净水', price: 100 }
+  ]);
+
   const [inventorySlots, setInventorySlots] = useState<(InventoryItem | null)[]>(() => {
     const initialSlots = Array(20).fill(null);
     initialSlots[0] = { name: '生锈的小刀', count: 1, description: '虽然已经锈迹斑斑，但在绝境中依然是可靠的防身工具。' };
@@ -82,6 +107,64 @@ const App = () => {
 
   const toggleModule = (type: ModuleType) => {
     setActiveModule(activeModule === type ? null : type);
+  };
+
+  // Derived GameState object for AI injection
+  const gameState = {
+    player: { hp, san, credits, location },
+    time: gameTime,
+    inventory: inventorySlots.filter(Boolean) as InventoryItem[],
+    quest_log: questLog,
+    npc_status: npcStatus,
+    shop_inventory: shopInventory
+  };
+
+  // State Update Handler for AI Response
+  const handleStateUpdate = (diff: any) => {
+    if (!diff) return;
+
+    // 1. Player Vitals
+    if (diff.player_diff) {
+      if (diff.player_diff.hp) setHp(prev => Math.min(100, Math.max(0, prev + diff.player_diff.hp)));
+      if (diff.player_diff.san) setSan(prev => Math.min(100, Math.max(0, prev + diff.player_diff.san)));
+      if (diff.player_diff.credits) setCredits(prev => Math.max(0, prev + diff.player_diff.credits));
+    }
+
+    // 2. Time Logic
+    if (diff.time_passed) {
+      setGameTime(prev => {
+        let { day, hour, minute } = prev;
+        minute += diff.time_passed;
+        while (minute >= 60) { minute -= 60; hour += 1; }
+        while (hour >= 24) { hour -= 24; day += 1; }
+        return { day, hour, minute };
+      });
+    }
+
+    // 3. Inventory (Simplified Add/Remove Logic)
+    if (diff.inventory_diff) {
+        if (diff.inventory_diff.add) {
+          setInventorySlots(prev => {
+            const next = [...prev];
+            diff.inventory_diff.add.forEach((newItem: any) => {
+              const existingIdx = next.findIndex(s => s?.name === newItem.name);
+              if (existingIdx !== -1) {
+                next[existingIdx]!.count += newItem.count;
+              } else {
+                const emptyIdx = next.findIndex(s => s === null);
+                if (emptyIdx !== -1) {
+                  next[emptyIdx] = { 
+                    name: newItem.name, 
+                    count: newItem.count, 
+                    description: newItem.desc || '未知物品' 
+                  };
+                }
+              }
+            });
+            return next;
+          });
+        }
+    }
   };
 
   const handlePurchase = (itemName: string, price: number, description: string) => {
@@ -142,7 +225,12 @@ const App = () => {
 
       {/* Main Content Area (Terminal) */}
       <main className="flex-1 relative z-10 flex flex-col overflow-hidden">
-        <Terminal active={true} llmConfig={llmConfig} />
+        <Terminal 
+          active={true} 
+          llmConfig={llmConfig} 
+          gameState={gameState}
+          onStateUpdate={handleStateUpdate}
+        />
         
         {/* Module Overlay */}
         {activeModule && (

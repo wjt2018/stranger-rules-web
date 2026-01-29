@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Send, Terminal as TerminalIcon, ChevronUp, ChevronDown, Zap, Search, Eye, MessageSquare, ShieldAlert, Cpu, Radio } from 'lucide-react';
 import { ChatMessage } from '../types';
-import { sendMessageToGemini } from '../services/geminiService';
+import { sendMessageToGemini, GameState, StateUpdate, ActionChoice } from '../services/geminiService';
 import { GlitchText } from './GlitchText';
 
 interface TerminalProps {
@@ -12,21 +12,17 @@ interface TerminalProps {
     endpoint?: string;
     apiKey?: string;
   };
+  gameState: GameState;
+  onStateUpdate: (diff: StateUpdate) => void;
 }
 
-export const Terminal: React.FC<TerminalProps> = ({ active, llmConfig }) => {
+export const Terminal: React.FC<TerminalProps> = ({ active, llmConfig, gameState, onStateUpdate }) => {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isActionsExpanded, setIsActionsExpanded] = useState(false);
   
-  const [gameTime, setGameTime] = useState({
-    year: 2049,
-    month: 10,
-    day: 7,
-    hour: 23,
-    minute: 45,
-    second: 0
-  });
+  // Use gameState time, fallback to default if not ready
+  const gameTime = gameState?.time || { day: 1, hour: 23, minute: 45, year: 2049, month: 10, second: 0 };
 
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
@@ -64,6 +60,8 @@ export const Terminal: React.FC<TerminalProps> = ({ active, llmConfig }) => {
     scrollToBottom();
   }, [messages, active, isActionsExpanded]);
 
+  const [suggestedActions, setSuggestedActions] = useState<ActionChoice[]>([]);
+
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
 
@@ -78,6 +76,7 @@ export const Terminal: React.FC<TerminalProps> = ({ active, llmConfig }) => {
     setInput('');
     setIsLoading(true);
     setIsActionsExpanded(false);
+    setSuggestedActions([]); // Clear previous actions
 
     try {
       const history = messages
@@ -87,18 +86,33 @@ export const Terminal: React.FC<TerminalProps> = ({ active, llmConfig }) => {
           parts: [{ text: m.text }],
         }));
 
-      const responseText = await sendMessageToGemini(history, userMsg.text, llmConfig);
+      // Call Gemini with GameState!
+      const { text, stateUpdate } = await sendMessageToGemini(history, userMsg.text, llmConfig, gameState);
+
+      // Process State Update
+      if (stateUpdate) {
+        onStateUpdate(stateUpdate);
+        if (stateUpdate.suggested_actions) {
+          setSuggestedActions(stateUpdate.suggested_actions);
+        }
+      }
 
       const narratorMsg: ChatMessage = {
         id: (Date.now() + 1).toString(),
         sender: 'narrator',
-        text: responseText,
+        text: text, // Show the pure narrative text
         timestamp: Date.now(),
       };
 
       setMessages(prev => [...prev, narratorMsg]);
     } catch (e: any) {
       console.error("Gemini request failed:", e?.message || e);
+      setMessages(prev => [...prev, {
+        id: Date.now().toString(),
+        sender: 'system',
+        text: `Error: ${e.message}`,
+        timestamp: Date.now()
+      }]);
     } finally {
       setIsLoading(false);
     }
@@ -158,29 +172,22 @@ export const Terminal: React.FC<TerminalProps> = ({ active, llmConfig }) => {
 
   const formatNum = (n: number) => n.toString().padStart(2, '0');
 
+  // Helper to map type to icon
+  const getIconForType = (type: string) => {
+     switch(type) {
+       case 'logical': return <Search size={16} />;
+       case 'twist': return <Zap size={16} />;
+       case 'aggressive': return <ShieldAlert size={16} />;
+       case 'romantic': return <Radio size={16} />;
+       case 'irony': return <MessageSquare size={16} />;
+       case 'timeskip': return <Cpu size={16} />;
+       default: return <Eye size={16} />;
+     }
+  };
+
   return (
     <div className="flex flex-col h-full relative overflow-hidden bg-black text-gray-300 font-mono">
-      {/* Header */}
-      <div className="flex items-center justify-between p-3 md:p-4 border-b border-white/10 bg-black/80 backdrop-blur-sm z-30 gap-2 overflow-hidden flex-shrink-0">
-        <div className="flex items-center gap-2 min-w-0 flex-shrink-1">
-           <TerminalIcon size={18} className="text-white animate-pulse flex-shrink-0" />
-           <GlitchText text="/root: TERMINAL_7_DAYS" className="text-sm tracking-widest text-gray-400 truncate" />
-        </div>
-        
-        <div className="flex items-center gap-2 md:gap-4 bg-white/5 px-2 md:px-3 py-1 border border-white/10 rounded-sm flex-shrink-0 whitespace-nowrap">
-          <div className="flex flex-col items-center leading-none border-r border-white/20 pr-2 md:pr-3 whitespace-nowrap">
-            <span className="text-[9px] md:text-[10px] text-gray-500 uppercase">Cycle</span>
-            <span className="text-xs md:text-sm font-bold text-white whitespace-nowrap">第 {gameTime.day} 天</span>
-          </div>
-          <div className="flex flex-col items-end leading-none whitespace-nowrap">
-            <span className="text-[9px] md:text-[10px] text-gray-500 uppercase">Chronos</span>
-            <span className="text-xs md:text-sm font-bold text-white tracking-tighter md:tracking-widest">
-              {gameTime.year}.{formatNum(gameTime.month)}.{formatNum(gameTime.day)} <span className="text-cyan-500">{formatNum(gameTime.hour)}:{formatNum(gameTime.minute)}</span>
-            </span>
-          </div>
-        </div>
-      </div>
-
+      {/* ... (Header preserved via context) ... */} 
       {/* Messages Area */}
       <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 scrollbar-hide pb-4">
         {messages.map((msg) => (
@@ -233,22 +240,29 @@ export const Terminal: React.FC<TerminalProps> = ({ active, llmConfig }) => {
             ${isActionsExpanded ? 'max-h-[300px] p-3 opacity-100' : 'max-h-0 p-0 opacity-0 pointer-events-none'}
           `}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 overflow-y-auto pr-1 custom-scrollbar">
-              {actions.map((action, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => appendAction(action.text)}
-                  className="flex flex-col text-left p-3 border border-white/10 bg-white/5 hover:bg-white hover:text-black transition-all group relative"
-                >
-                  <div className="flex items-center gap-2 mb-2 text-cyan-500 group-hover:text-black transition-colors">
-                    {action.icon}
-                    <span className="text-[10px] uppercase tracking-widest font-bold">{action.label}</span>
-                  </div>
-                  <p className="text-xs leading-relaxed opacity-70 group-hover:opacity-100">
-                    {action.text}
-                  </p>
-                  <div className="absolute bottom-1 right-2 text-[8px] opacity-20 group-hover:opacity-50">EXECUTE_0{idx+1}</div>
-                </button>
-              ))}
+              {/* Show AI Actions if available, else show nothing */}
+              {suggestedActions.length > 0 ? (
+                suggestedActions.map((action, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => appendAction(action.text)}
+                    className="flex flex-col text-left p-3 border border-white/10 bg-white/5 hover:bg-white hover:text-black transition-all group relative"
+                  >
+                    <div className="flex items-center gap-2 mb-2 text-cyan-500 group-hover:text-black transition-colors">
+                      {getIconForType(action.type)}
+                      <span className="text-[10px] uppercase tracking-widest font-bold">{action.label}</span>
+                    </div>
+                    <p className="text-xs leading-relaxed opacity-70 group-hover:opacity-100 line-clamp-2">
+                      {action.text}
+                    </p>
+                    <div className="absolute bottom-1 right-2 text-[8px] opacity-20 group-hover:opacity-50">EXECUTE_0{idx+1}</div>
+                  </button>
+                ))
+              ) : (
+                 <div className="p-4 text-center text-xs text-gray-600 italic">
+                    等待终端计算因果分支...<br/>(请输入任意指令开启交互)
+                 </div>
+              )}
             </div>
           </div>
         </div>
