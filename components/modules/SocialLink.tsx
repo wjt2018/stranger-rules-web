@@ -1,15 +1,33 @@
 import React from 'react';
 import { Users, Heart, MessageSquare, AlertCircle } from 'lucide-react';
-import { NPCRelationship } from '../../types';
 
-export const SocialLink: React.FC = () => {
-  // 模拟数据：在实际应用中这些应从父组件 state 传入
-  const relationships: NPCRelationship[] = [
-    { name: "军需官 老莫", favorability: 85, status: "信赖", lastInteractionTurn: 12 },
-    { name: "拾荒女孩 艾莉", favorability: 40, status: "警惕", lastInteractionTurn: 5 },
-    { name: "避难所 医生", favorability: 15, status: "厌恶", lastInteractionTurn: 22 },
-    { name: "黑市商人 '影子'", favorability: 55, status: "中立", lastInteractionTurn: 30 }
-  ];
+interface NpcInfo {
+  name: string;
+  favorability: number;
+  last_interaction: number;
+}
+
+interface SocialLinkProps {
+  npcStatus: NpcInfo[];
+}
+
+// 根据好感度自动生成关系标签
+const getStatusLabel = (favorability: number): string => {
+  if (favorability >= 80) return '信赖';
+  if (favorability >= 60) return '友好';
+  if (favorability >= 40) return '中立';
+  if (favorability >= 20) return '警惕';
+  return '厌恶';
+};
+
+export const SocialLink: React.FC<SocialLinkProps> = ({ npcStatus }) => {
+  // 将 npcStatus 映射为组件内部使用的格式
+  const relationships = npcStatus.map(npc => ({
+    name: npc.name,
+    favorability: npc.favorability,
+    status: getStatusLabel(npc.favorability),
+    lastInteractionTurn: npc.last_interaction
+  }));
 
   return (
     <div className="p-6 min-h-full flex flex-col gap-6 bg-black text-white font-mono animate-in fade-in duration-500 overflow-y-auto">

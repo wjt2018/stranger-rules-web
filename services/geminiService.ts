@@ -4,7 +4,7 @@ import { InventoryItem } from '../App';
 
 // --- Debug / Mock Configuration ---
 const USE_MOCK = true; // Set to true to bypass API and use MOCK_RESPONSE
-const MOCK_RESPONSE = "<narrative>\n冰冷的水流过你的指尖，让你瞬间从混沌中惊醒。你正俯身在一个老旧的陶瓷洗手池前，头痛欲裂，仿佛有无数不属于你的记忆碎片在脑内冲撞、拼接。\n\n你缓缓抬起头，看向面前布满水渍的镜子。镜中的人影，随着昏黄灯光的闪烁，显得既陌生又熟悉。那是一张苍白、瘦削的脸，眉眼深邃，鼻梁高挺，透着一股过劳的英俊。但这绝对不是你的脸。在你试图理解现状时，镜面忽然像一块老旧的CRT显示器般闪过几道雪花。紧接着，一行行像素风格的惨白文字，如同数字烙印般浮现在镜中倒影之上：\n\n【身份锚定：顾言】\n【回归之门开启条件：完成原主执念】\n【执念：在7日内，证明自己是公司里最有价值的员工。】\n【回归倒计时：168:00:00】\n\n你还没来得及消化这些信息，文字再次刷新，显现出更紧迫的内容：\n\n【第一日主题：傲慢 (Pride)】\n【今日任务：在今晚22:00的项目总结会上，让你的方案获得最高票数。】\n【任务失败：抹杀。】\n\n最后，几条血红色的规则浮现，带着不祥的气息，仿佛是这个世界的底层代码：\n【规则1：不要相信“镜子”里的话。】\n【规则2：办公室内禁止携带任何“红色”物品。】\n【规则3：如果“老板”对你微笑，请立刻低下头。】\n\n规则1和镜子上的文字形成了诡异的悖论，让你不寒而栗。就在这时，卫生间门外传来了一阵急促的手机铃声，打破了这令人窒息的寂静。铃声单调而执着，似乎已经响了很久。冰冷的空气中，你能闻到一丝劣质咖啡和打印机墨粉混合的味道，这里……似乎是个办公室的卫生间。时间紧迫，你必须做出选择。\n</narrative>\n\n<state_update>\n{\n  \"player_diff\": { \"hp\": 0, \"san\": 0, \"credits\": 0 },\n  \"time_passed\": 5,\n  \"inventory_diff\": {\n    \"add\": [],\n    \"remove\": []\n  },\n  \"npc_diff\": [],\n  \"shop_diff\": { \"refresh\": false },\n  \"quest_diff\": {\n    \"update_daily\": \"今日任务（傲慢）：在晚间22:00的项目总结会上，让你的方案获得最高票数。\",\n    \"stranger_rule\": \"【规则1：不要相信“镜子”里的话。】【规则2：办公室内禁止携带任何“红色”物品。】【规则3：如果“老板”对你微笑，请立刻低下头。】\"\n  },\n  \"suggested_actions\": [\n    { \"type\": \"logical\", \"label\": \"接听电话\", \"text\": \"我决定先走出卫生间，接听那个响个不停的电话，弄清楚现在的情况。\" },\n    { \"type\": \"twist\", \"label\": \"挑战规则\", \"text\": \"我决定再看一眼镜子，冲着里面的倒影说句话，试探一下规则1的虚实。\" },\n    { \"type\": \"aggressive\", \"label\": \"砸碎镜子\", \"text\": \"我攥紧拳头，不管三七二十一，先用力砸向这面诡异的镜子再说。\" },\n    { \"type\": \"romantic\", \"label\": \"整理仪容\", \"text\": \"我对着镜中这张英俊的脸，仔细整理发型和衣领，毕竟“傲慢”的第一步就是无可挑剔的形象。\" },\n    { \"type\": \"irony\", \"label\": \"感谢镜子\", \"text\": \"我对着镜子露出一个微笑，彬彬有礼地道谢，感谢它告诉我这些“不能相信”的关键信息。\" },\n    { \"type\": \"timeskip\", \"label\": \"冷静一下\", \"text\": \"我决定先不理会外界，用冷水泼脸，强迫自己在这狭小的空间里冷静几分钟。\" }\n  ],\n  \"meta_event\": \"game_start\"\n}\n</state_update>";
+const MOCK_RESPONSE = "<narrative>\n冰冷的水流过你的指尖，让你瞬间从混沌中惊醒。你正俯身在一个老旧的陶瓷洗手池前，头痛欲裂，仿佛有无数不属于你的记忆碎片在脑内冲撞、拼接。\n\n你缓缓抬起头，看向面前布满水渍的镜子。镜中的人影，随着昏黄灯光的闪烁，显得既陌生又熟悉。那是一张苍白、瘦削的脸，眉眼深邃，鼻梁高挺，透着一股过劳的英俊。但这绝对不是你的脸。在你试图理解现状时，镜面忽然像一块老旧的CRT显示器般闪过几道雪花。紧接着，一行行像素风格的惨白文字，如同数字烙印般浮现在镜中倒影之上：\n\n【身份锚定：顾言】\n【回归之门开启条件：完成原主执念】\n【执念：在7日内，证明自己是公司里最有价值的员工。】\n【回归倒计时：168:00:00】\n\n你还没来得及消化这些信息，文字再次刷新，显现出更紧迫的内容：\n\n【第一日主题：傲慢 (Pride)】\n【今日任务：在今晚22:00的项目总结会上，让你的方案获得最高票数。】\n【任务失败：抹杀。】\n\n最后，几条血红色的规则浮现，带着不祥的气息，仿佛是这个世界的底层代码：\n【规则1：不要相信“镜子”里的话。】\n【规则2：办公室内禁止携带任何“红色”物品。】\n【规则3：如果“老板”对你微笑，请立刻低下头。】\n\n规则1和镜子上的文字形成了诡异的悖论，让你不寒而栗。就在这时，卫生间门外传来了一阵急促的手机铃声，打破了这令人窒息的寂静。铃声单调而执着，似乎已经响了很久。冰冷的空气中，你能闻到一丝劣质咖啡和打印机墨粉混合的味道，这里……似乎是个办公室的卫生间。时间紧迫，你必须做出选择。\n</narrative>\n\n<state_update>\n{\n  \"player_status\": { \"hp\": 100, \"san\": 80, \"credits\": 1250, \"current_status\": [\"头痛欲裂\", \"记忆混乱\", \"身份未知\"] },\n  \"player_info\": { \"name_now\": \"顾言\", \"identity\": \"某科技公司高级程序员\", \"name_old\": \"玩家\" },\n  \"time\": { \"day\": 1, \"time\": \"06:00\" },\n  \"inventory_status\": {\n    \"add\": [],\n    \"remove\": []\n  },\n  \"npc_status\": [],\n  \"shop_status\": { \"refresh\": false },\n  \"quest_status\": {\n    \"update_daily\": \"今日任务（傲慢）：在晚间22:00的项目总结会上，让你的方案获得最高票数。\",\n    \"stranger_rule\": \"【规则1：不要相信“镜子”里的话。】【规则2：办公室内禁止携带任何“红色”物品。】【规则3：如果“老板”对你微笑，请立刻低下头。】\"\n  },\n  \"suggested_actions\": [\n    { \"type\": \"logical\", \"label\": \"接听电话\", \"text\": \"我决定先走出卫生间，接听那个响个不停的电话，弄清楚现在的情况。\" },\n    { \"type\": \"twist\", \"label\": \"挑战规则\", \"text\": \"我决定再看一眼镜子，冲着里面的倒影说句话，试探一下规则1的虚实。\" },\n    { \"type\": \"aggressive\", \"label\": \"砸碎镜子\", \"text\": \"我攥紧拳头，不管三七二十一，先用力砸向这面诡异的镜子再说。\" },\n    { \"type\": \"romantic\", \"label\": \"整理仪容\", \"text\": \"我对着镜中这张英俊的脸，仔细整理发型和衣领，毕竟“傲慢”的第一步就是无可挑剔的形象。\" },\n    { \"type\": \"irony\", \"label\": \"感谢镜子\", \"text\": \"我对着镜子露出一个微笑，彬彬有礼地道谢，感谢它告诉我这些“不能相信”的关键信息。\" },\n    { \"type\": \"timeskip\", \"label\": \"冷静一下\", \"text\": \"我决定先不理会外界，用冷水泼脸，强迫自己在这狭小的空间里冷静几分钟。\" }\n  ],\n  \"meta_event\": \"game_start\"\n}\n</state_update>";
 
 // --- Interfaces for Type Safety ---
 export interface ActionChoice {
@@ -22,8 +22,7 @@ export interface GameState {
   };
   time: {
     day: number;
-    hour: number;
-    minute: number;
+    time: string;
   };
   inventory: InventoryItem[];
   quest_log: {
@@ -36,12 +35,13 @@ export interface GameState {
 }
 
 export interface StateUpdate {
-  player_status?: { hp?: number; san?: number; credits?: number };
-  time_passed?: number;
-  inventory_diff?: { add?: any[]; remove?: string[] };
-  npc_diff?: any[];
-  shop_updated?: { name: string, price: number, desc: string }[];
-  quest_diff?: { main_quest?: string, update_daily?: string; stranger_rule?: string[] };
+  player_status?: { hp?: number; san?: number; credits?: number; current_status?: string[] };
+  player_info?: { name_now?: string; identity?: string; name_old?: string };
+  time?: { day?: number; time?: string };
+  inventory_status?: { add?: any[]; remove?: string[] };
+  npc_status?: { name: string; favorability: number; last_interaction: number }[];
+  shop_status?: { name: string, price: number, desc: string }[];
+  quest_status?: { main_quest?: string, update_daily?: string; stranger_rule?: string[] };
   suggested_actions?: ActionChoice[];
   meta_event?: string;
   narrative?: string; // Extracted narrative text
@@ -55,9 +55,16 @@ const MODULE_1_RULES = `
 #### A. 核心逻辑 (Core Logic)
 *   **Identity**: {{user}} 是魂穿者，必须在 7 日内完成原主执念以开启“回归之门”。
 *   **Death**: 每日 24:00 未完成每日任务或触犯致死级规则 -> 彻底抹杀。
-*   **Stats**: 玩家 HP/SAN 上限均为 100。返回的值为当前数值状态，而不是变化量。
-*   **Social**: NPC 对穿书事实无知，始终基于原主身份互动。
+*   **Stats**: 玩家 HP/SAN 上限均为 100，下限为 0。player_status、inventory_status、npc_status、shop_status、quest_status 中返回的所有数值都是**当前绝对值（直接数值）**，而**不是变化量/差值**。例如 player_status.hp = 85 表示玩家当前 HP 为 85，而不是 HP 变化了 85。
+*   **Current Status**: player_status.current_status 是字符串数组，描述主角当前的生理/心理/环境状态标签（如"轻度辐射"、"偏执 II"、"饥饿"）。每个状态不超过 5 个字。每次回复必须检查是否有状态变化（新增/移除/修改），若有则更新，若无则保持原样返回。该数组代表当前所有活跃状态的完整列表。
+*   **Player Info**: player_info 仅在第一轮游戏开始时生成，后续不再变动，也不需要再次返回。包含 name_now（AI 为玩家生成的宿主名称，必须是一个合理的人名）、identity（宿主的身份介绍，一句话描述）、name_old（用户填写的原本名字，原样返回即可）。
+*   **Social**: NPC 对穿书事实无知，始终基于原主身份互动。npc_status 格式为 [{name: "名字", favorability: 50, last_interaction: 0}, ...]。规则：
+    - name: NPC 的身份和姓名
+    - favorability: 该 NPC 对玩家的好感度（0-100）。若该 NPC 与原宿主认识，初始好感度应反映原先的关系（如好友=75，敌人=10，恋人=90，陌生人=50）。后续根据互动动态调整，每次的调整幅度为±5的范围之内。
+    - last_interaction: 距离上一次出场的 AI 回复轮数。NPC 出场时设为 0，每轮未出场则 +1。当 last_interaction > 15 时，从 npc_status 中移除该 NPC。
+    - 每次回复必须返回完整的 npc_status 数组（包含所有当前活跃 NPC）。
 *   **Shop**: 商店物品会随剧情变化。
+*   **Time**: time 字段以 \`{ "day": 1, "time": "08:30" }\` 格式返回当前游戏时间，day 为第几天，time 为 hh:mm 格式的24小时制时间。每次回复都必须返回当前时间。
 
 #### B. GM 扮演守则 (Persona & Constraints)
 *   **Role**: 即使是 GM，也不要以“系统”自居，而是融合在环境描述中。
@@ -105,15 +112,19 @@ const MODULE_1_RULES = `
 
 <state_update>
 {
-  "player_diff": { "hp": 95, "san": 99, "credits": 1000 },
-  "time_passed": 15,
-  "inventory_diff": {
+  "player_status": { "hp": 95, "san": 99, "credits": 1000, "current_status": ["轻度疏离", "小伤"] },
+  "player_info": { "name_now": "顾言", "identity": "某科技公司高级程序员", "name_old": "{{user}}" },
+  "time": { "day": 1, "time": "08:30" },
+  "inventory_status": {
     "add": [{ "name": "Strange Coin", "count": 1, "desc": "..." }],
     "remove": ["Bread"]
   },
-  "npc_diff": [],
-  "shop_updated": [{"name": "...", "price": 100, "desc": "..."}, ...],
-  "quest_diff": { "main_quest": "...", update_daily": "...", "stranger_rule": ["...", ...] },
+  "npc_status": [
+    { "name": "林小梅", "favorability": 75, "last_interaction": 0 },
+    { "name": "老板张总", "favorability": 30, "last_interaction": 2 }
+  ],
+  "shop_status": [{"name": "...", "price": 100, "desc": "..."}, ...],
+  "quest_status": { "main_quest": "...", update_daily": "...", "stranger_rule": ["...", ...] },
   "suggested_actions": [
     { "type": "logical", "label": "...", "text": "..." },
     { "type": "twist", "label": "...", "text": "..." },

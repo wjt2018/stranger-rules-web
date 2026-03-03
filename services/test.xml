@@ -24,15 +24,16 @@
 
 <state_update>
 {
-  "player_diff": { "hp": 0, "san": 0, "credits": 0 },
-  "time_passed": 5,
-  "inventory_diff": {
+  "player_status": { "hp": 100, "san": 80, "credits": 1250, "current_status": ["头痛欲裂", "记忆混乱", "身份未知"] },
+  "player_info": { "name_now": "顾言", "identity": "某科技公司高级程序员", "name_old": "玩家" },
+  "time": { "day": 1, "time": "06:00" },
+  "inventory_status": {
     "add": [],
     "remove": []
   },
-  "npc_diff": [],
-  "shop_diff": { "refresh": false },
-  "quest_diff": {
+  "npc_status": [],
+  "shop_status": { "refresh": false },
+  "quest_status": {
     "main_quest": "在7日内，证明自己是公司里最有价值的员工。"
     "update_daily": "今日任务（傲慢）：在晚间22:00的项目总结会上，让你的方案获得最高票数。",
     "new_rule": "['规则1：不要相信“镜子”里的话。', '规则2：办公室内禁止携带任何“红色”物品。', '规则3：如果“老板”对你微笑，请立刻低下头。']"

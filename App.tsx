@@ -28,12 +28,15 @@ const App = () => {
   const [hp, setHp] = useState(100);
   const [san, setSan] = useState(80);
   const [credits, setCredits] = useState(1250);
+  const [currentStatus, setCurrentStatus] = useState<string[]>([]);
+  const [playerInfo, setPlayerInfo] = useState<{ name_now: string; identity: string; name_old: string }>({
+    name_now: '', identity: '', name_old: ''
+  });
   const [location, setLocation] = useState('Safehouse');
   
   const [gameTime, setGameTime] = useState({
     day: 1,
-    hour: 23,
-    minute: 45
+    time: '06:00'
   });
 
   const [questLog, setQuestLog] = useState({
@@ -42,9 +45,7 @@ const App = () => {
     active_rules: ["禁止直视月亮", "听到敲门声必须在3秒内回应"]
   });
 
-  const [npcStatus, setNpcStatus] = useState<any[]>([
-    { name: '神秘商人', affinity: 0, last_seen_turns: 99 }
-  ]);
+  const [npcStatus, setNpcStatus] = useState<{ name: string; favorability: number; last_interaction: number }[]>([]);
   
   const [shopInventory, setShopInventory] = useState<any[]>([
     { name: '面包', price: 50 },
@@ -123,30 +124,37 @@ const App = () => {
   const handleStateUpdate = (diff: any) => {
     if (!diff) return;
 
-    // 1. Player Vitals
-    if (diff.player_diff) {
-      if (diff.player_diff.hp) setHp(prev => Math.min(100, Math.max(0, prev + diff.player_diff.hp)));
-      if (diff.player_diff.san) setSan(prev => Math.min(100, Math.max(0, prev + diff.player_diff.san)));
-      if (diff.player_diff.credits) setCredits(prev => Math.max(0, prev + diff.player_diff.credits));
+    // 1. Player Vitals（直接数值，非变化量）
+    if (diff.player_status) {
+      if (diff.player_status.hp != null) setHp(Math.min(100, Math.max(0, diff.player_status.hp)));
+      if (diff.player_status.san != null) setSan(Math.min(100, Math.max(0, diff.player_status.san)));
+      if (diff.player_status.credits != null) setCredits(Math.max(0, diff.player_status.credits));
+      if (diff.player_status.current_status) setCurrentStatus(diff.player_status.current_status);
     }
 
-    // 2. Time Logic
-    if (diff.time_passed) {
-      setGameTime(prev => {
-        let { day, hour, minute } = prev;
-        minute += diff.time_passed;
-        while (minute >= 60) { minute -= 60; hour += 1; }
-        while (hour >= 24) { hour -= 24; day += 1; }
-        return { day, hour, minute };
-      });
+    // 1.5 Player Info（仅首次写入，后续不变）
+    if (diff.player_info && !playerInfo.name_now) {
+      setPlayerInfo(prev => ({
+        name_now: diff.player_info.name_now || prev.name_now,
+        identity: diff.player_info.identity || prev.identity,
+        name_old: diff.player_info.name_old || prev.name_old
+      }));
+    }
+
+    // 2. Time（直接赋值当前时间）
+    if (diff.time) {
+      setGameTime(prev => ({
+        day: diff.time.day ?? prev.day,
+        time: diff.time.time ?? prev.time
+      }));
     }
 
     // 3. Inventory (Simplified Add/Remove Logic)
-    if (diff.inventory_diff) {
-        if (diff.inventory_diff.add) {
+    if (diff.inventory_status) {
+        if (diff.inventory_status.add) {
           setInventorySlots(prev => {
             const next = [...prev];
-            diff.inventory_diff.add.forEach((newItem: any) => {
+            diff.inventory_status.add.forEach((newItem: any) => {
               const existingIdx = next.findIndex(s => s?.name === newItem.name);
               if (existingIdx !== -1) {
                 next[existingIdx]!.count += newItem.count;
@@ -164,6 +172,11 @@ const App = () => {
             return next;
           });
         }
+    }
+
+    // 4. NPC Status（AI 返回完整列表，直接替换）
+    if (diff.npc_status) {
+      setNpcStatus(diff.npc_status);
     }
   };
 
@@ -195,18 +208,20 @@ const App = () => {
 
   const renderModuleContent = () => {
     switch (activeModule) {
-      case ModuleType.CHARACTER: return <CharacterSheet credits={credits} />;
+      case ModuleType.CHARACTER: return <CharacterSheet hp={hp} san={san} credits={credits} currentStatus={currentStatus} playerInfo={playerInfo} />;
       case ModuleType.QUESTS: return <QuestBoard />;
       case ModuleType.RULES: return <RulesModule />;
       case ModuleType.SHOP: return <ShopModule credits={credits} onPurchase={handlePurchase} />;
       case ModuleType.INVENTORY: return <InventoryModule slots={inventorySlots} setSlots={setInventorySlots} />;
-      case ModuleType.SOCIAL_LINK: return <SocialLink />;
+      case ModuleType.SOCIAL_LINK: return <SocialLink npcStatus={npcStatus} />;
       case ModuleType.SETTINGS: return <SettingsModule llmConfig={llmConfig} onConfigChange={setLlmConfig} />;
       default: return null;
     }
   };
 
   const handleIntroComplete = (data: any) => {
+    // 保存用户在 IntroScene 填写的原名
+    setPlayerInfo(prev => ({ ...prev, name_old: data.codeName || '' }));
     setShowIntro(false);
   };
 
@@ -214,6 +229,17 @@ const App = () => {
     <div className="w-full h-screen bg-black text-white overflow-hidden flex flex-col relative scanlines">
       {/* Background Ambience */}
       <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-gray-900/20 via-black to-black z-0"></div>
+
+      {/* Top Banner - 显示游戏时间 */}
+      <div className="h-10 bg-black border-b border-white/10 z-50 flex items-center justify-between px-4 shrink-0">
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+          <span className="text-[10px] text-gray-500 uppercase tracking-[0.3em] font-mono">SYSTEM_ACTIVE</span>
+        </div>
+        <span className="text-sm font-mono font-bold tracking-wider text-white">
+          第{gameTime.day}天 <span className="text-gray-400">{gameTime.time}</span>
+        </span>
+      </div>
 
       {/* Intro Scene Overlay */}
       {showIntro && (

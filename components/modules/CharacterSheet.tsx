@@ -3,19 +3,23 @@ import { Activity, Brain, Shield, Zap, Skull, CreditCard } from 'lucide-react';
 import { CharacterStats } from '../../types';
 
 interface CharacterSheetProps {
+  hp: number;
+  san: number;
   credits: number;
+  currentStatus: string[];
+  playerInfo: { name_now: string; identity: string; name_old: string };
 }
 
-export const CharacterSheet: React.FC<CharacterSheetProps> = ({ credits }) => {
-  // 模拟数据：在实际应用中这些应从父组件 state 传入
+export const CharacterSheet: React.FC<CharacterSheetProps> = ({ hp, san, credits, currentStatus, playerInfo }) => {
+  // 使用 props 传入的实际游戏状态
   const stats: CharacterStats = {
-    hp: 65,
+    hp: hp,
     maxHp: 100,
-    sanity: 42,
+    sanity: san,
     maxSanity: 100,
     credits: credits,
     level: 3,
-    statusEffects: ['轻度辐射', '偏执 II', '饥饿'],
+    statusEffects: currentStatus.length > 0 ? currentStatus : ['正常'],
     relationships: [] // Relationships now handled in SocialLink module
   };
 
@@ -25,10 +29,10 @@ export const CharacterSheet: React.FC<CharacterSheetProps> = ({ credits }) => {
       <div className="border-b border-white/20 pb-4 flex justify-between items-end shrink-0">
         <div className="flex flex-col">
           <span className="text-[10px] text-gray-500 uppercase tracking-[0.4em] mb-1">Biological_Profile</span>
-          <h2 className="text-4xl pixel-font uppercase tracking-tighter">ID: 流浪者_04</h2>
+          <h2 className="text-4xl pixel-font uppercase tracking-tighter">宿主: {playerInfo.name_now || '加载中...'}</h2>
           <div className="flex gap-4 mt-1">
-            <span className="text-[10px] bg-white text-black px-1 font-bold">等级: {stats.level}</span>
-            <span className="text-[10px] text-gray-500 uppercase tracking-widest">职业: 拾荒者</span>
+            <span className="text-[10px] bg-white text-black px-1 font-bold">本名: {playerInfo.name_old || '未知'}</span>
+            <span className="text-[10px] text-gray-500 uppercase tracking-widest">身份: {playerInfo.identity || '未知'}</span>
           </div>
         </div>
       </div>
