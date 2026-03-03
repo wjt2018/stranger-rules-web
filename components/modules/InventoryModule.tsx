@@ -5,9 +5,10 @@ import { InventoryItem } from '../../App';
 interface InventoryModuleProps {
   slots: (InventoryItem | null)[];
   setSlots: React.Dispatch<React.SetStateAction<(InventoryItem | null)[]>>;
+  onUseItem?: (name: string, desc: string) => void;
 }
 
-export const InventoryModule: React.FC<InventoryModuleProps> = ({ slots, setSlots }) => {
+export const InventoryModule: React.FC<InventoryModuleProps> = ({ slots, setSlots, onUseItem }) => {
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
 
   const selectedItem = selectedIdx !== null ? slots[selectedIdx] : null;
@@ -29,6 +30,8 @@ export const InventoryModule: React.FC<InventoryModuleProps> = ({ slots, setSlot
     }
     
     setSlots(updatedSlots);
+    // 通知 App 物品已使用，生成隐式提示
+    onUseItem?.(selectedItem.name, selectedItem.description || '未知物品');
     setSelectedIdx(null); // 关闭详情弹窗
   };
 

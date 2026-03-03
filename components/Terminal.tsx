@@ -14,9 +14,11 @@ interface TerminalProps {
   };
   gameState: GameState;
   onStateUpdate: (diff: StateUpdate) => void;
+  pendingItemHint?: string;
+  onClearItemHint?: () => void;
 }
 
-export const Terminal: React.FC<TerminalProps> = ({ active, llmConfig, gameState, onStateUpdate }) => {
+export const Terminal: React.FC<TerminalProps> = ({ active, llmConfig, gameState, onStateUpdate, pendingItemHint, onClearItemHint }) => {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isActionsExpanded, setIsActionsExpanded] = useState(false);
@@ -86,8 +88,14 @@ export const Terminal: React.FC<TerminalProps> = ({ active, llmConfig, gameState
           parts: [{ text: m.text }],
         }));
 
+      // 将物品使用提示附加到发送给 AI 的内容末尾（但不显示给玩家）
+      const actualInput = pendingItemHint ? `${userMsg.text}\n${pendingItemHint}` : userMsg.text;
+      if (pendingItemHint) {
+        onClearItemHint?.();
+      }
+
       // Call Gemini with GameState!
-      const { text, stateUpdate } = await sendMessageToGemini(history, userMsg.text, llmConfig, gameState);
+      const { text, stateUpdate } = await sendMessageToGemini(history, actualInput, llmConfig, gameState);
 
       // Process State Update
       if (stateUpdate) {

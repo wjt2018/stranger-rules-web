@@ -49,6 +49,9 @@ const App = () => {
   
   const [shopInventory, setShopInventory] = useState<{ name: string; price: number; desc: string }[]>([]);
 
+  // 物品使用隐式提示：使用物品后暂存提示，下次发送请求时附加到用户输入末尾
+  const [pendingItemHint, setPendingItemHint] = useState('');
+
   const [inventorySlots, setInventorySlots] = useState<(InventoryItem | null)[]>(() => {
     const initialSlots = Array(20).fill(null);
     initialSlots[0] = { name: '生锈的小刀', count: 1, description: '虽然已经锈迹斑斑，但在绝境中依然是可靠的防身工具。' };
@@ -232,7 +235,7 @@ const App = () => {
       case ModuleType.QUESTS: return <QuestBoard mainQuest={questLog.main_quest} dailyQuest={questLog.daily_quest} />;
       case ModuleType.RULES: return <RulesModule rules={strangerRules} />;
       case ModuleType.SHOP: return <ShopModule credits={credits} shopItems={shopInventory} onPurchase={handlePurchase} />;
-      case ModuleType.INVENTORY: return <InventoryModule slots={inventorySlots} setSlots={setInventorySlots} />;
+      case ModuleType.INVENTORY: return <InventoryModule slots={inventorySlots} setSlots={setInventorySlots} onUseItem={(name: string, desc: string) => setPendingItemHint(`[系统提示：玩家本轮使用了物品「${name}」（${desc}），请在叙事和状态更新中体现该物品的使用效果。]`)} />;
       case ModuleType.SOCIAL_LINK: return <SocialLink npcStatus={npcStatus} />;
       case ModuleType.SETTINGS: return <SettingsModule llmConfig={llmConfig} onConfigChange={setLlmConfig} />;
       default: return null;
@@ -276,6 +279,8 @@ const App = () => {
           llmConfig={llmConfig} 
           gameState={gameState}
           onStateUpdate={handleStateUpdate}
+          pendingItemHint={pendingItemHint}
+          onClearItemHint={() => setPendingItemHint('')}
         />
         
         {/* Module Overlay */}
