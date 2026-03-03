@@ -40,17 +40,14 @@ const App = () => {
   });
 
   const [questLog, setQuestLog] = useState({
-    main_mission: "替宿主完成最后的执念，开启回归之门。",
-    daily_mission: "【暴食】今日任务结算中...",
-    active_rules: ["禁止直视月亮", "听到敲门声必须在3秒内回应"]
+    main_quest: '',
+    daily_quest: '',
   });
+  const [strangerRules, setStrangerRules] = useState<string[]>([]);
 
   const [npcStatus, setNpcStatus] = useState<{ name: string; favorability: number; last_interaction: number }[]>([]);
   
-  const [shopInventory, setShopInventory] = useState<any[]>([
-    { name: '面包', price: 50 },
-    { name: '纯净水', price: 100 }
-  ]);
+  const [shopInventory, setShopInventory] = useState<{ name: string; price: number; desc: string }[]>([]);
 
   const [inventorySlots, setInventorySlots] = useState<(InventoryItem | null)[]>(() => {
     const initialSlots = Array(20).fill(null);
@@ -178,6 +175,29 @@ const App = () => {
     if (diff.npc_status) {
       setNpcStatus(diff.npc_status);
     }
+
+    // 5. Quest Status
+    if (diff.quest_status) {
+      setQuestLog(prev => ({
+        main_quest: diff.quest_status.main_quest ?? prev.main_quest,
+        daily_quest: diff.quest_status.daily_quest ?? prev.daily_quest,
+      }));
+      if (diff.quest_status.stranger_rule) {
+        const raw = diff.quest_status.stranger_rule;
+        if (Array.isArray(raw)) {
+          setStrangerRules(raw);
+        } else if (typeof raw === 'string') {
+          // 兼容字符串格式，按【】分割
+          const parsed = (raw as string).match(/【[^】]+】/g) || [raw];
+          setStrangerRules(parsed);
+        }
+      }
+    }
+
+    // 6. Shop Status（AI 返回完整列表，直接替换）
+    if (diff.shop_status && Array.isArray(diff.shop_status)) {
+      setShopInventory(diff.shop_status);
+    }
   };
 
   const handlePurchase = (itemName: string, price: number, description: string) => {
@@ -209,9 +229,9 @@ const App = () => {
   const renderModuleContent = () => {
     switch (activeModule) {
       case ModuleType.CHARACTER: return <CharacterSheet hp={hp} san={san} credits={credits} currentStatus={currentStatus} playerInfo={playerInfo} />;
-      case ModuleType.QUESTS: return <QuestBoard />;
-      case ModuleType.RULES: return <RulesModule />;
-      case ModuleType.SHOP: return <ShopModule credits={credits} onPurchase={handlePurchase} />;
+      case ModuleType.QUESTS: return <QuestBoard mainQuest={questLog.main_quest} dailyQuest={questLog.daily_quest} />;
+      case ModuleType.RULES: return <RulesModule rules={strangerRules} />;
+      case ModuleType.SHOP: return <ShopModule credits={credits} shopItems={shopInventory} onPurchase={handlePurchase} />;
       case ModuleType.INVENTORY: return <InventoryModule slots={inventorySlots} setSlots={setInventorySlots} />;
       case ModuleType.SOCIAL_LINK: return <SocialLink npcStatus={npcStatus} />;
       case ModuleType.SETTINGS: return <SettingsModule llmConfig={llmConfig} onConfigChange={setLlmConfig} />;
