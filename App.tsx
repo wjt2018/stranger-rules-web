@@ -410,7 +410,7 @@ const App = () => {
         />
         
         {/* Debug/Intro Trigger */}
-        <div className="w-[1px] h-6 bg-white/10 mx-1 hidden lg:block"></div>
+        {/* <div className="w-[1px] h-6 bg-white/10 mx-1 hidden lg:block"></div>
         <button
           onClick={() => setShowIntro(true)}
           className="flex flex-col items-center justify-center gap-1 p-2 md:p-3 rounded-sm text-cyan-500 hover:text-cyan-400 hover:bg-cyan-500/10 transition-all border border-cyan-500/20"
@@ -418,7 +418,7 @@ const App = () => {
         >
           <PlayCircle size={18} />
           <span className="text-[9px] font-mono tracking-widest hidden md:block uppercase font-bold">Intro</span>
-        </button>
+        </button> */}
       </nav>
     </div>
   );

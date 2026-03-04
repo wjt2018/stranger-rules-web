@@ -211,8 +211,13 @@ export const fetchModelList = async (endpoint: string, apiKey: string): Promise<
     const key = apiKey || process.env.GEMINI_API_KEY || process.env.API_KEY;
     if (!key) throw new Error("Missing API Key");
 
-    const url = `${baseUrl}/v1beta/models?key=${key}`;
-    const response = await fetch(url);
+    const url = `${baseUrl}/v1beta/models`;
+    const response = await fetch(url, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${key}`
+      }
+    });
     if (!response.ok) throw new Error(response.statusText);
     const data = await response.json();
     return (data.models || [])
@@ -248,7 +253,7 @@ export const sendMessageToGemini = async (
     let baseUrl = config?.endpoint || process.env.GEMINI_API_ENDPOINT || "https://generativelanguage.googleapis.com";
     baseUrl = baseUrl.replace(/\/$/, "");
     const model = config?.model || 'gemini-3-flash-preview';
-    const url = `${baseUrl}/v1beta/models/${model}:generateContent?key=${apiKey}`;
+    const url = `${baseUrl}/v1beta/models/${model}:generateContent`;
 
     // Construct the user message with injected state context
     // We do NOT send the raw user message alone, we wrap it with state context
@@ -273,7 +278,10 @@ export const sendMessageToGemini = async (
 
     const response = await fetch(url, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { 
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${apiKey}`
+      },
       body: JSON.stringify(body)
     });
 
