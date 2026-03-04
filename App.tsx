@@ -18,11 +18,12 @@ export interface InventoryItem {
   description: string;
 }
 
-import { getConfig, saveConfig } from './services/db';
+import { getConfig, saveConfig, saveGameState, getGameState, saveMessages, getMessages, GameSaveData, SavedMessage, saveSuggestedActions, getSuggestedActions } from './services/db';
 
 const App = () => {
   const [activeModule, setActiveModule] = useState<ModuleType | null>(null);
-  const [showIntro, setShowIntro] = useState(false);
+  const [showIntro, setShowIntro] = useState(true); // 默认显示，从 IndexedDB 恢复后关闭
+  const [isLoaded, setIsLoaded] = useState(false); // 防止初始化闪烁
   
   // Shared game state
   const [hp, setHp] = useState(100);
@@ -52,13 +53,16 @@ const App = () => {
   // 物品使用隐式提示：使用物品后暂存提示，下次发送请求时附加到用户输入末尾
   const [pendingItemHint, setPendingItemHint] = useState('');
 
+  // IntroScene 完成后的表单数据，传给 Terminal 触发首轮 AI 调用
+  const [introData, setIntroData] = useState<{ codeName: string; gender: string; anchor: string; extra: string } | null>(null);
+
   const [inventorySlots, setInventorySlots] = useState<(InventoryItem | null)[]>(() => {
-    const initialSlots = Array(20).fill(null);
-    initialSlots[0] = { name: '生锈的小刀', count: 1, description: '虽然已经锈迹斑斑，但在绝境中依然是可靠的防身工具。' };
-    initialSlots[1] = { name: '绷带', count: 3, description: '基础医疗物资，能够止血并防止伤口感染。' };
-    initialSlots[2] = { name: '旧照片', count: 1, description: '一张边缘泛黄的照片，背面写着模糊的地址。看着它能让你感到一丝人性。' };
-    return initialSlots;
+    return Array(20).fill(null);
   });
+
+  // 用于 Terminal 的消息和建议行动（提升到 App 层管理，便于持久化）
+  const [savedMessages, setSavedMessages] = useState<SavedMessage[] | null>(null);
+  const [savedActions, setSavedActions] = useState<any[] | null>(null);
 
   // LLM Configuration state
   const [llmConfig, setLlmConfig] = useState({
@@ -68,40 +72,73 @@ const App = () => {
     apiKey: '',
   });
 
-  // Load config from IndexedDB on mount
+  // 从 IndexedDB 加载 LLM 配置和游戏数据
   useEffect(() => {
-    const loadSettings = async () => {
+    const loadAll = async () => {
+      // 1. 加载 LLM 配置
       const savedConfig = await getConfig();
       if (savedConfig) {
-        // Sanitize: If saved config matches invisible env vars, clear it from UI state
-        // This prevents old persisted values from showing up after we decided to hide them
         const sanitizedConfig = { ...savedConfig };
-        
         if (process.env.GEMINI_API_ENDPOINT && savedConfig.endpoint === process.env.GEMINI_API_ENDPOINT) {
           sanitizedConfig.endpoint = '';
         }
-        
-        // Also check if matches standard default, just in case
-        if (savedConfig.endpoint === 'https://generativelanguage.googleapis.com') {
-           // Optional: keep it or clear it? Let's keep specific env var sanitization focus
-        }
-
         if (process.env.GEMINI_API_KEY && savedConfig.apiKey === process.env.GEMINI_API_KEY) {
           sanitizedConfig.apiKey = '';
         }
-        
         setLlmConfig(sanitizedConfig);
       }
+
+      // 2. 加载游戏状态
+      const state = await getGameState();
+      if (state) {
+        setHp(state.hp);
+        setSan(state.san);
+        setCredits(state.credits);
+        setCurrentStatus(state.currentStatus);
+        setPlayerInfo(state.playerInfo);
+        setLocation(state.location);
+        setGameTime(state.gameTime);
+        setQuestLog(state.questLog);
+        setStrangerRules(state.strangerRules);
+        setNpcStatus(state.npcStatus);
+        setShopInventory(state.shopInventory);
+        setInventorySlots(state.inventorySlots);
+      }
+
+      // 3. 加载消息和建议行动
+      const msgs = await getMessages();
+      if (msgs && msgs.length > 0) {
+        setSavedMessages(msgs);
+        setShowIntro(false); // 有历史消息 → 非首次进入，跳过 IntroScene
+      }
+      const acts = await getSuggestedActions();
+      if (acts) {
+        setSavedActions(acts);
+      }
+
+      setIsLoaded(true);
     };
-    loadSettings();
+    loadAll();
   }, []);
 
-  // Save config to IndexedDB whenever it changes
+  // 自动保存游戏状态到 IndexedDB（防抖 500ms）
   useEffect(() => {
-    if (llmConfig.apiKey) { // Only save if there's meaningful data (optional check)
+    if (!isLoaded) return; // 未加载完毕不保存
+    const timer = setTimeout(() => {
+      saveGameState({
+        hp, san, credits, currentStatus, playerInfo, location,
+        gameTime, questLog, strangerRules, npcStatus, shopInventory, inventorySlots
+      });
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [hp, san, credits, currentStatus, playerInfo, location, gameTime, questLog, strangerRules, npcStatus, shopInventory, inventorySlots, isLoaded]);
+
+  // 保存 LLM 配置
+  useEffect(() => {
+    if (llmConfig.apiKey) {
       const timer = setTimeout(() => {
         saveConfig(llmConfig);
-      }, 500); // 500ms debounce
+      }, 500);
       return () => clearTimeout(timer);
     }
   }, [llmConfig]);
@@ -245,6 +282,7 @@ const App = () => {
   const handleIntroComplete = (data: any) => {
     // 保存用户在 IntroScene 填写的原名
     setPlayerInfo(prev => ({ ...prev, name_old: data.codeName || '' }));
+    setIntroData(data); // 传给 Terminal 触发首轮 AI
     setShowIntro(false);
   };
 
@@ -274,6 +312,7 @@ const App = () => {
 
       {/* Main Content Area (Terminal) */}
       <main className="flex-1 relative z-10 flex flex-col overflow-hidden">
+        {isLoaded && (
         <Terminal 
           active={true} 
           llmConfig={llmConfig} 
@@ -281,7 +320,14 @@ const App = () => {
           onStateUpdate={handleStateUpdate}
           pendingItemHint={pendingItemHint}
           onClearItemHint={() => setPendingItemHint('')}
+          introData={introData}
+          onIntroDone={() => setIntroData(null)}
+          initialMessages={savedMessages}
+          initialActions={savedActions}
+          onMessagesChange={(msgs: SavedMessage[]) => { setSavedMessages(msgs); saveMessages(msgs); }}
+          onActionsChange={(acts: any[]) => { setSavedActions(acts); saveSuggestedActions(acts); }}
         />
+        )}
         
         {/* Module Overlay */}
         {activeModule && (
@@ -338,7 +384,7 @@ const App = () => {
         />
         
         {/* Debug/Intro Trigger */}
-        <div className="w-[1px] h-6 bg-white/10 mx-1 hidden lg:block"></div>
+        {/* <div className="w-[1px] h-6 bg-white/10 mx-1 hidden lg:block"></div>
         <button
           onClick={() => setShowIntro(true)}
           className="flex flex-col items-center justify-center gap-1 p-2 md:p-3 rounded-sm text-cyan-500 hover:text-cyan-400 hover:bg-cyan-500/10 transition-all border border-cyan-500/20"
@@ -346,7 +392,7 @@ const App = () => {
         >
           <PlayCircle size={18} />
           <span className="text-[9px] font-mono tracking-widest hidden md:block uppercase font-bold">Intro</span>
-        </button>
+        </button> */}
       </nav>
     </div>
   );

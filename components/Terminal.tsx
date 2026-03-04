@@ -16,9 +16,15 @@ interface TerminalProps {
   onStateUpdate: (diff: StateUpdate) => void;
   pendingItemHint?: string;
   onClearItemHint?: () => void;
+  introData?: { codeName: string; gender: string; anchor: string; extra: string } | null;
+  onIntroDone?: () => void;
+  initialMessages?: ChatMessage[] | null;
+  initialActions?: any[] | null;
+  onMessagesChange?: (msgs: ChatMessage[]) => void;
+  onActionsChange?: (acts: any[]) => void;
 }
 
-export const Terminal: React.FC<TerminalProps> = ({ active, llmConfig, gameState, onStateUpdate, pendingItemHint, onClearItemHint }) => {
+export const Terminal: React.FC<TerminalProps> = ({ active, llmConfig, gameState, onStateUpdate, pendingItemHint, onClearItemHint, introData, onIntroDone, initialMessages, initialActions, onMessagesChange, onActionsChange }) => {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isActionsExpanded, setIsActionsExpanded] = useState(false);
@@ -26,14 +32,16 @@ export const Terminal: React.FC<TerminalProps> = ({ active, llmConfig, gameState
   // Use gameState time, fallback to default if not ready
   const gameTime = gameState?.time || { day: 1, hour: 23, minute: 45, year: 2049, month: 10, second: 0 };
 
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      id: 'init-1',
-      sender: 'system',
-      text: '系统正在初始化...\n连接至 [异世界]...\n\n你醒了。\n这不是你熟悉的世界\n包括你的身体也变成了陌生的模样。\n\n主线任务：你需要替宿主(即此刻这副身体原本的主人)完成ta最深的愿望。记住：你有7天时间完成，才能逃离这里回到你原本的世界，否则你将永远停留在这里。\n\n每日任务：在这7日里每一天都会对应七宗罪中的其中一罪，你必须在每日0点前完成它。否则会被当场抹杀。\n\n规则怪谈：请遵循每个世界的规则。你说不遵守怎样？哈哈哈哈哈哈你可以试试看。\n\n请及时在下方信息栏查看你的任务和状态。',
-      timestamp: Date.now(),
-    },
-  ]);
+  const INIT_MSG: ChatMessage = {
+    id: 'init-1',
+    sender: 'system',
+    text: '系统正在初始化...\n连接至 [异世界]...\n\n你醒了。\n这不是你熟悉的世界\n包括你的身体也变成了陌生的模样。\n\n主线任务：你需要替宿主（即此刻这副身体原本的主人）完成ta最深的愿望。记住：你有7天时间完成，才能逃离这里回到你原本的世界，否则你将永远停留在这里。\n\n每日任务：在这7日里每一天都会对应七宗罪中的其中一罪，你必须在每日0点前完成它。否则会被当场抹杀。\n\n规则怪谈：请遵循每个世界的规则。你说不遵守怎样？哈哈哈哈哈哈你可以试试看。\n\n请及时在下方信息栏查看你的任务和状态。',
+    timestamp: Date.now(),
+  };
+
+  const [messages, setMessages] = useState<ChatMessage[]>(
+    initialMessages && initialMessages.length > 0 ? initialMessages : [INIT_MSG]
+  );
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -62,7 +70,56 @@ export const Terminal: React.FC<TerminalProps> = ({ active, llmConfig, gameState
     scrollToBottom();
   }, [messages, active, isActionsExpanded]);
 
-  const [suggestedActions, setSuggestedActions] = useState<ActionChoice[]>([]);
+  // IntroScene 完成后自动触发首轮 AI 调用
+  useEffect(() => {
+    if (!introData) return;
+    const triggerFirstAI = async () => {
+      setIsLoading(true);
+      const firstMessage = `[游戏初始化] 玩家原名：${introData.codeName}，性别：${introData.gender}，世界背景：${introData.anchor}${introData.extra ? '，额外设定：' + introData.extra : ''}。\n这是第一轮游戏开始，请生成完整的开场叙事，必须包含：1) 宿主的身份介绍；2) 当前世界观背景；3) 主线任务；4) 今日的每日任务（5) 规则怪谈的规则。同时返回完整的 state_update（包括 player_info、quest_status、shop_status 等所有字段）。`;
+      try {
+        const { text, stateUpdate } = await sendMessageToGemini([], firstMessage, llmConfig, gameState);
+        if (stateUpdate) {
+          onStateUpdate(stateUpdate);
+          if (stateUpdate.suggested_actions) {
+            setSuggestedActions(stateUpdate.suggested_actions);
+          }
+        }
+        const narratorMsg: ChatMessage = {
+          id: 'intro-ai-1',
+          sender: 'narrator',
+          text: text,
+          timestamp: Date.now(),
+        };
+        setMessages(prev => [...prev, narratorMsg]);
+      } catch (e: any) {
+        console.error('First AI call failed:', e?.message || e);
+        setMessages(prev => [...prev, {
+          id: 'intro-error',
+          sender: 'system',
+          text: `初始化失败: ${e.message}`,
+          timestamp: Date.now()
+        }]);
+      } finally {
+        setIsLoading(false);
+        onIntroDone?.();
+      }
+    };
+    triggerFirstAI();
+  }, [introData]);
+
+  const [suggestedActions, setSuggestedActions] = useState<ActionChoice[]>(
+    initialActions && initialActions.length > 0 ? initialActions : []
+  );
+
+  // 消息变更时同步到 App 层持久化
+  useEffect(() => {
+    onMessagesChange?.(messages);
+  }, [messages]);
+
+  // 建议行动变更时同步到 App 层持久化
+  useEffect(() => {
+    onActionsChange?.(suggestedActions);
+  }, [suggestedActions]);
 
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
