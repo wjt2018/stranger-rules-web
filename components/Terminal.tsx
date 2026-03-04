@@ -18,13 +18,14 @@ interface TerminalProps {
   onClearItemHint?: () => void;
   introData?: { codeName: string; gender: string; anchor: string; extra: string } | null;
   onIntroDone?: () => void;
+  firstAIResult?: { text: string; stateUpdate?: StateUpdate; actions?: any[] } | null;
   initialMessages?: ChatMessage[] | null;
   initialActions?: any[] | null;
   onMessagesChange?: (msgs: ChatMessage[]) => void;
   onActionsChange?: (acts: any[]) => void;
 }
 
-export const Terminal: React.FC<TerminalProps> = ({ active, llmConfig, gameState, onStateUpdate, pendingItemHint, onClearItemHint, introData, onIntroDone, initialMessages, initialActions, onMessagesChange, onActionsChange }) => {
+export const Terminal: React.FC<TerminalProps> = ({ active, llmConfig, gameState, onStateUpdate, pendingItemHint, onClearItemHint, introData, onIntroDone, firstAIResult, initialMessages, initialActions, onMessagesChange, onActionsChange }) => {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isActionsExpanded, setIsActionsExpanded] = useState(false);
@@ -70,42 +71,21 @@ export const Terminal: React.FC<TerminalProps> = ({ active, llmConfig, gameState
     scrollToBottom();
   }, [messages, active, isActionsExpanded]);
 
-  // IntroScene 完成后自动触发首轮 AI 调用
+  // IntroScene 完成后，将首轮 AI 结果直接注入消息列表
   useEffect(() => {
-    if (!introData) return;
-    const triggerFirstAI = async () => {
-      setIsLoading(true);
-      const firstMessage = `[游戏初始化] 玩家原名：${introData.codeName}，性别：${introData.gender}，世界背景：${introData.anchor}${introData.extra ? '，额外设定：' + introData.extra : ''}。\n这是第一轮游戏开始，请生成完整的开场叙事，必须包含：1) 宿主的身份介绍；2) 当前世界观背景；3) 主线任务；4) 今日的每日任务（5) 规则怪谈的规则。同时返回完整的 state_update（包括 player_info、quest_status、shop_status 等所有字段）。`;
-      try {
-        const { text, stateUpdate } = await sendMessageToGemini([], firstMessage, llmConfig, gameState);
-        if (stateUpdate) {
-          onStateUpdate(stateUpdate);
-          if (stateUpdate.suggested_actions) {
-            setSuggestedActions(stateUpdate.suggested_actions);
-          }
-        }
-        const narratorMsg: ChatMessage = {
-          id: 'intro-ai-1',
-          sender: 'narrator',
-          text: text,
-          timestamp: Date.now(),
-        };
-        setMessages(prev => [...prev, narratorMsg]);
-      } catch (e: any) {
-        console.error('First AI call failed:', e?.message || e);
-        setMessages(prev => [...prev, {
-          id: 'intro-error',
-          sender: 'system',
-          text: `初始化失败: ${e.message}`,
-          timestamp: Date.now()
-        }]);
-      } finally {
-        setIsLoading(false);
-        onIntroDone?.();
-      }
+    if (!introData || !firstAIResult) return;
+    const narratorMsg: ChatMessage = {
+      id: 'intro-ai-1',
+      sender: 'narrator',
+      text: firstAIResult.text,
+      timestamp: Date.now(),
     };
-    triggerFirstAI();
-  }, [introData]);
+    setMessages((prev: ChatMessage[]) => [...prev, narratorMsg]);
+    if (firstAIResult.actions && firstAIResult.actions.length > 0) {
+      setSuggestedActions(firstAIResult.actions);
+    }
+    onIntroDone?.();
+  }, [introData, firstAIResult]);
 
   const [suggestedActions, setSuggestedActions] = useState<ActionChoice[]>(
     initialActions && initialActions.length > 0 ? initialActions : []

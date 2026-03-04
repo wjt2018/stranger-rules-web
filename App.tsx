@@ -19,6 +19,7 @@ export interface InventoryItem {
 }
 
 import { getConfig, saveConfig, saveGameState, getGameState, saveMessages, getMessages, GameSaveData, SavedMessage, saveSuggestedActions, getSuggestedActions } from './services/db';
+import { sendMessageToGemini, GameState, StateUpdate } from './services/geminiService';
 
 const App = () => {
   const [activeModule, setActiveModule] = useState<ModuleType | null>(null);
@@ -55,6 +56,10 @@ const App = () => {
 
   // IntroScene 完成后的表单数据，传给 Terminal 触发首轮 AI 调用
   const [introData, setIntroData] = useState<{ codeName: string; gender: string; anchor: string; extra: string } | null>(null);
+
+  // 首轮 AI 请求状态：点击 RUNNN!!!! 后异步调用，完成后“接受协议”按钮可用
+  const [isAIReady, setIsAIReady] = useState(false);
+  const [firstAIResult, setFirstAIResult] = useState<{ text: string; stateUpdate?: StateUpdate; actions?: any[] } | null>(null);
 
   const [inventorySlots, setInventorySlots] = useState<(InventoryItem | null)[]>(() => {
     return Array(20).fill(null);
@@ -279,10 +284,28 @@ const App = () => {
     }
   };
 
+  // 点击 RUNNN!!!! 时触发首轮 AI 请求（在 IntroScene 动画期间异步执行）
+  const handleStartAI = async (data: any) => {
+    setPlayerInfo((prev: any) => ({ ...prev, name_old: data.codeName || '' }));
+    try {
+      const firstMessage = `[游戏初始化] 玩家原名：${data.codeName}，性别：${data.gender}，世界背景：${data.anchor}${data.extra ? '，额外设定：' + data.extra : ''}。\n这是第一轮游戏开始，请生成完整的开场叙事，必须包含：1) 宿主的身份介绍；2) 当前世界观背景；3) 主线任务；4) 今日的每日任务；5) 规则怪谈的规则。同时返回完整的 state_update（包括 player_info、quest_status、shop_status 等所有字段）。`;
+      const { text, stateUpdate } = await sendMessageToGemini([], firstMessage, llmConfig, gameState);
+      setFirstAIResult({ text, stateUpdate, actions: stateUpdate?.suggested_actions });
+      if (stateUpdate) {
+        handleStateUpdate(stateUpdate);
+      }
+      setIsAIReady(true);
+    } catch (e: any) {
+      console.error('First AI call failed:', e?.message || e);
+      // 即使失败也允许进入，避免卡死
+      setFirstAIResult({ text: `系统初始化异常: ${e?.message || '未知错误'}，请在主界面重新尝试。` });
+      setIsAIReady(true);
+    }
+  };
+
+  // 点击“接受协议”时：关闭 IntroScene，将首轮 AI 结果注入 Terminal
   const handleIntroComplete = (data: any) => {
-    // 保存用户在 IntroScene 填写的原名
-    setPlayerInfo(prev => ({ ...prev, name_old: data.codeName || '' }));
-    setIntroData(data); // 传给 Terminal 触发首轮 AI
+    setIntroData(data); // 传给 Terminal 注入首轮 AI 回复
     setShowIntro(false);
   };
 
@@ -306,7 +329,9 @@ const App = () => {
       {showIntro && (
         <IntroScene 
           onComplete={handleIntroComplete} 
-          onClose={() => setShowIntro(false)} 
+          onClose={() => setShowIntro(false)}
+          onStartAI={handleStartAI}
+          isAIReady={isAIReady}
         />
       )}
 
@@ -322,6 +347,7 @@ const App = () => {
           onClearItemHint={() => setPendingItemHint('')}
           introData={introData}
           onIntroDone={() => setIntroData(null)}
+          firstAIResult={firstAIResult}
           initialMessages={savedMessages}
           initialActions={savedActions}
           onMessagesChange={(msgs: SavedMessage[]) => { setSavedMessages(msgs); saveMessages(msgs); }}
@@ -384,7 +410,7 @@ const App = () => {
         />
         
         {/* Debug/Intro Trigger */}
-        {/* <div className="w-[1px] h-6 bg-white/10 mx-1 hidden lg:block"></div>
+        <div className="w-[1px] h-6 bg-white/10 mx-1 hidden lg:block"></div>
         <button
           onClick={() => setShowIntro(true)}
           className="flex flex-col items-center justify-center gap-1 p-2 md:p-3 rounded-sm text-cyan-500 hover:text-cyan-400 hover:bg-cyan-500/10 transition-all border border-cyan-500/20"
@@ -392,7 +418,7 @@ const App = () => {
         >
           <PlayCircle size={18} />
           <span className="text-[9px] font-mono tracking-widest hidden md:block uppercase font-bold">Intro</span>
-        </button> */}
+        </button>
       </nav>
     </div>
   );

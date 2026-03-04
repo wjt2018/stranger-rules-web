@@ -4,6 +4,8 @@ import { X } from 'lucide-react';
 interface IntroSceneProps {
   onComplete: (data: any) => void;
   onClose: () => void;
+  onStartAI?: (data: any) => void;
+  isAIReady?: boolean;
 }
 
 // const BG_PHASE_1 = 'https://i.postimg.cc/RFKHB9zG/f47d197b208d34a2fb4773509c88cf82.jpg';
@@ -36,7 +38,7 @@ const BRIEFING_LINES = [
   "请及时在下方信息栏查看你的任务和状态。"
 ];
 
-export const IntroScene: React.FC<IntroSceneProps> = ({ onComplete, onClose }) => {
+export const IntroScene: React.FC<IntroSceneProps> = ({ onComplete, onClose, onStartAI, isAIReady }) => {
   const [step, setStep] = useState(0); 
   const briefingEndRef = useRef<HTMLDivElement>(null);
   
@@ -70,7 +72,7 @@ export const IntroScene: React.FC<IntroSceneProps> = ({ onComplete, onClose }) =
     "滴——",
     "滴——",
     "滴—— 确认死亡",
-    "你死了",
+    "你的这副躯体坏了",
     "别急着哭丧",
     "我今天心情很好",
     "你地下的祖宗把头磕烂了才为你求来了这场‘加时赛’",
@@ -339,7 +341,7 @@ export const IntroScene: React.FC<IntroSceneProps> = ({ onComplete, onClose }) =
                   jitterStyle={getJitterStyle(horrorLevel, 1.1)} 
                 />
             </div>
-            <button onClick={() => setStep(2)} disabled={horrorLevel < 0.75} className="w-full py-4 text-xl font-black uppercase tracking-[0.5em] transition-all" style={{ background: horrorLevel > 0.8 ? '#500' : '#fff', color: horrorLevel > 0.8 ? '#f00' : '#000', opacity: horrorLevel < 0.75 ? 0.3 : 1, ...getHeartbeatStyle(horrorLevel) }}>
+            <button onClick={() => { onStartAI?.(formData); setStep(2); }} disabled={horrorLevel < 0.75} className="w-full py-4 text-xl font-black uppercase tracking-[0.5em] transition-all" style={{ background: horrorLevel > 0.8 ? '#500' : '#fff', color: horrorLevel > 0.8 ? '#f00' : '#000', opacity: horrorLevel < 0.75 ? 0.3 : 1, ...getHeartbeatStyle(horrorLevel) }}>
                 {horrorLevel === 1 ? "RUNNN!!!!" : "等待同步..."}
             </button>
           </div>
@@ -366,9 +368,14 @@ export const IntroScene: React.FC<IntroSceneProps> = ({ onComplete, onClose }) =
                <div className="w-full pt-8 flex justify-center animate-in fade-in zoom-in duration-1000">
                   <button 
                     onClick={() => onComplete(formData)}
-                    className="px-10 py-4 bg-white text-black font-black uppercase tracking-widest hover:bg-red-600 hover:text-white transition-all shadow-[0_0_25px_rgba(255,255,255,0.5)] border-2 border-transparent hover:border-white"
+                    disabled={!isAIReady}
+                    className={`px-10 py-4 font-black uppercase tracking-widest transition-all border-2 ${
+                      isAIReady 
+                        ? 'bg-white text-black hover:bg-red-600 hover:text-white shadow-[0_0_25px_rgba(255,255,255,0.5)] border-transparent hover:border-white cursor-pointer' 
+                        : 'bg-gray-800 text-gray-500 border-gray-700 cursor-not-allowed animate-pulse'
+                    }`}
                   >
-                    接受协议
+                    {isAIReady ? '接受协议' : '协议生成中…'}
                   </button>
                </div>
              )}
