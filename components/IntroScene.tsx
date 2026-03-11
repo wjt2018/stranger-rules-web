@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X } from 'lucide-react';
+import { X, Volume2, VolumeX } from 'lucide-react';
 
 interface IntroSceneProps {
   onComplete: (data: any) => void;
@@ -72,7 +72,7 @@ export const IntroScene: React.FC<IntroSceneProps> = ({ onComplete, onClose, onS
     "滴——",
     "滴——",
     "滴—— 确认死亡",
-    "你的这副躯体坏了",
+    "你的生命余额不足",
     "别急着哭丧",
     "我今天心情很好",
     "你地下的祖宗把头磕烂了才为你求来了这场‘加时赛’",
@@ -97,7 +97,7 @@ export const IntroScene: React.FC<IntroSceneProps> = ({ onComplete, onClose, onS
         setBgOpacity((textIndex + 1) / narrativeLines.length);
         const timeout = setTimeout(() => {
           setTextIndex(prev => prev + 1);
-        }, 1800); 
+        }, 2500); 
         return () => clearTimeout(timeout);
       } else {
         setShowStartBtn(true);
@@ -116,7 +116,7 @@ export const IntroScene: React.FC<IntroSceneProps> = ({ onComplete, onClose, onS
   // Step 2 高潮启动计时
   useEffect(() => {
     if (step === 2) {
-      const timer = setTimeout(() => setIsZooming(true), 3000);
+      const timer = setTimeout(() => setIsZooming(true), 800);
       return () => clearTimeout(timer);
     }
   }, [step]);
@@ -185,6 +185,40 @@ export const IntroScene: React.FC<IntroSceneProps> = ({ onComplete, onClose, onS
       return () => clearInterval(timer);
     }
   }, [step]);
+
+  // Step 3 播放背景音乐
+  const [isMuted, setIsMuted] = useState(false);
+  
+  useEffect(() => {
+    if (step === 3) {
+      const audio = new Audio('/audio/Footsteps.flac'); 
+      audio.loop = true; 
+      audio.muted = isMuted;
+      
+      audio.play().catch(err => console.log("等待用户交互后播放音频", err));
+
+      return () => {
+        audio.pause();
+        audio.currentTime = 0;
+      };
+    }
+  }, [step, isMuted]);
+
+  // Step 1 播放背景音乐
+  useEffect(() => {
+    if (step === 0) {
+      const audio = new Audio('/audio/Music Box Creepy.mp3'); 
+      audio.loop = true; 
+      audio.muted = isMuted;
+      
+      audio.play().catch(err => console.log("等待用户交互后播放音频", err));
+
+      return () => {
+        audio.pause();
+        audio.currentTime = 0;
+      };
+    }
+  }, [step, isMuted]);
 
   // 简报自动滚动
   useEffect(() => {
@@ -382,7 +416,18 @@ export const IntroScene: React.FC<IntroSceneProps> = ({ onComplete, onClose, onS
           </div>
         )}
         
-        <button onClick={onClose} className="absolute top-4 right-4 opacity-30 hover:opacity-100 z-[60]"><X /></button>
+        <div className="absolute top-4 right-4 flex gap-4 z-[60]">
+          {(step === 0 || step === 3) && (
+            <button 
+              onClick={() => setIsMuted(!isMuted)} 
+              className="opacity-30 hover:opacity-100 transition-opacity"
+              title={isMuted ? "取消静音" : "静音"}
+            >
+              {isMuted ? <VolumeX /> : <Volume2 />}
+            </button>
+          )}
+          <button onClick={onClose} className="opacity-30 hover:opacity-100"><X /></button>
+        </div>
       </div>
 
       {step === 2 && isZooming && (
