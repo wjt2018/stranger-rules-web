@@ -209,7 +209,18 @@ export const fetchModelList = async (endpoint: string, apiKey: string): Promise<
     baseUrl = baseUrl.replace(/\/$/, "");
     
     const key = apiKey || process.env.GEMINI_API_KEY || process.env.API_KEY;
-    if (!key) throw new Error("Missing API Key");
+    // CLOUDFLARE PAGES 代理逻辑：如果没有配置 key，则回退调用我们自己的 Serverless 接口
+    if (!key) {
+      if (typeof window !== 'undefined') { // 如果在浏览器环境
+         console.log("未检测到本地配置的 API Key，将尝试使用 Cloudflare Serverless 代理（/api/models）获取模型列表。");
+         const response = await fetch('/api/models');
+         if (!response.ok) throw new Error(response.statusText);
+         const data = await response.json();
+         // 注意：此处的代理 mock 已经直接返回了名称，直接 map 处理
+         return (data.models || []).map((m: any) => m.name);
+      }
+      throw new Error("Missing API Key and not in browser environment to use proxy");
+    }
 
     const url = `${baseUrl}/models`;
     const response = await fetch(url, {
@@ -321,9 +332,16 @@ export const sendMessageToGLM = async (
       return parseGeminiResponse(MOCK_RESPONSE);
     }
 
-    const apiKey = config?.apiKey || process.env.GEMINI_API_KEY || process.env.API_KEY;
+    let apiKey = config?.apiKey || process.env.GEMINI_API_KEY || process.env.API_KEY || "";
+    let isUsingProxy = false;
+
     if (!apiKey) {
-      return { text: "⚠️ 系统警告: 未检测到 API 密钥。" };
+      if (typeof window !== 'undefined') {
+        console.log("未检测到本地配置的 API Key，将使用 Cloudflare Serverless 代理（/api/glm）。");
+        isUsingProxy = true;
+      } else {
+         return { text: "⚠️ 系统警告: 未检测到 API 密钥，且不在浏览器环境中无法使用代理。" };
+      }
     }
 
     let baseUrl = config?.endpoint || process.env.GEMINI_API_ENDPOINT || "https://open.bigmodel.cn/api/paas/v4";
@@ -354,12 +372,20 @@ export const sendMessageToGLM = async (
       max_tokens: 4096,
     };
 
-    const response = await fetch(url, {
+    // 如果使用代理，URL指向相对路径 /api/glm，且不需要带 Authorization 头
+    const requestUrl = isUsingProxy ? "/api/glm" : url;
+    const requestHeaders: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+    
+    // 只有在非代理直连模式下，才需要带上 Authorization Key
+    if (!isUsingProxy) {
+      requestHeaders["Authorization"] = `Bearer ${apiKey}`;
+    }
+
+    const response = await fetch(requestUrl, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${apiKey}`
-      },
+      headers: requestHeaders,
       body: JSON.stringify(body)
     });
 

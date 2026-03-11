@@ -12,6 +12,38 @@
 
 ---
 
+## 🚀 如何自己部署 (零成本免维护)
+
+得益于大前端的能力，本项目是一个无需自己买服务器的全栈单页应用 (SPA)。推荐使用 **Cloudflare Pages** 配合自带的 Serverless Functions 直接部署你的 GitHub 仓库，**这样不仅访问飞快，还能安全地隐藏你的大模型 API Key！**
+
+### 部署指南 (3分钟搞定)
+
+#### 步骤 1: 准备项目
+1. 将本项目 `Fork` 到你自己的 GitHub 账号下。
+2. 登录或注册 [Cloudflare](https://dash.cloudflare.com/) 账号。
+
+#### 步骤 2: 在 Cloudflare 创建应用
+1. 在 Cloudflare 控制台的左侧菜单，找到并点击 `Workers & Pages`。
+2. 点击中间区域的 `Create application` 按钮。
+3. 切换到 `Pages` 标签页，也就是部署页面。
+4. 选择 `Connect to Git`。
+5. 授权并选择你刚刚 Fork 的本项目仓库，然后点击 `Begin setup`。
+
+#### 步骤 3: 这里的配置最重要！
+在 **Set up builds and deployments** 页面：
+1. **Framework preset**: 选 `Vite` 或者 `React`（如果没有就选 `None` 并手动指定下面的内容）
+2. **Build command**: 填入 `npm run build`
+3. **Build output directory**: 填入 `dist`
+4. 🌟 **设置 API Key（最强防护）**: 往下翻找到 `Environment variables (advanced)` 选项卡。增加一个变量：
+   - Variable name: `GLM_API_KEY`
+   - Value: 填入你在 [智谱AI开放平台](https://open.bigmodel.cn/) 申请的 API 秘钥。
+5. **别犹豫了，点击 Save and Deploy！**
+
+#### 步骤 4: 大功告成
+几分钟后 Cloudflare 就会把你的专属链接吐出来。因为我们在代码仓库里写了 `functions` 文件夹，Cloudflare 会自动帮你启动一个隐藏式的后端 API 代替你把请求发给智谱！这样任何人来玩游戏都不需要自己填 Key，**也没有任何人能在你的前端页面控制台 F12 偷走到你的真实 Key。**
+
+---
+
 ## 📖 故事背景
 
 你在现实世界已经死亡。
