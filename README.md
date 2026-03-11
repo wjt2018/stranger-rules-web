@@ -6,7 +6,7 @@
 
 <br/>
 
-[开始游戏](https://ai.studio/apps/drive/1rvzU0jmWilqb8DH2fY8AmDXvrQMQ6EoV) · [讨论与反馈](../../discussions)
+[开始游戏]() · [讨论与反馈](https://github.com/wjt2018/stranger-rules-web/discussions)
 
 </div>
 
@@ -69,7 +69,7 @@
 
 ## 💬 反馈与讨论
 
-关于本游戏的任何**体验分享、玩法建议、Bug 反馈、世界背景点子**，都欢迎在 [GitHub Discussions](../../discussions) 中交流！
+关于本游戏的任何**体验分享、玩法建议、Bug 反馈、世界背景点子**，都欢迎在 [GitHub Discussions](https://github.com/wjt2018/stranger-rules-web/discussions) 中交流！
 
 ---
 
