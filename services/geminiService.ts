@@ -4,7 +4,7 @@ import { InventoryItem } from '../App';
 
 // --- Debug / Mock Configuration ---
 const USE_MOCK = false; // Set to true to bypass API and use MOCK_RESPONSE
-// const MOCK_RESPONSE = "<narrative>\n冰冷的水流过你的指尖，让你瞬间从混沌中惊醒。你正俯身在一个老旧的陶瓷洗手池前，头痛欲裂，仿佛有无数不属于你的记忆碎片在脑内冲撞、拼接。\n\n你缓缓抬起头，看向面前布满水渍的镜子。镜中的人影，随着昏黄灯光的闪烁，显得既陌生又熟悉。那是一张苍白、瘦削的脸，眉眼深邃，鼻梁高挺，透着一股过劳的英俊。但这绝对不是你的脸。在你试图理解现状时，镜面忽然像一块老旧的CRT显示器般闪过几道雪花。紧接着，一行行像素风格的惨白文字，如同数字烙印般浮现在镜中倒影之上：\n\n【身份锚定：顾言】\n【回归之门开启条件：完成原主执念】\n【执念：在7日内，证明自己是公司里最有价值的员工。】\n【回归倒计时：168:00:00】\n\n你还没来得及消化这些信息，文字再次刷新，显现出更紧迫的内容：\n\n【第一日主题：傲慢 (Pride)】\n【今日任务：在今晚22:00的项目总结会上，让你的方案获得最高票数。】\n【任务失败：抹杀。】\n\n最后，几条血红色的规则浮现，带着不祥的气息，仿佛是这个世界的底层代码：\n【规则1：不要相信“镜子”里的话。】\n【规则2：办公室内禁止携带任何“红色”物品。】\n【规则3：如果“老板”对你微笑，请立刻低下头。】\n\n规则1和镜子上的文字形成了诡异的悖论，让你不寒而栗。就在这时，卫生间门外传来了一阵急促的手机铃声，打破了这令人窒息的寂静。铃声单调而执着，似乎已经响了很久。冰冷的空气中，你能闻到一丝劣质咖啡和打印机墨粉混合的味道，这里……似乎是个办公室的卫生间。时间紧迫，你必须做出选择。\n</narrative>\n\n<state_update>\n{\n  \"player_status\": { \"hp\": 100, \"san\": 80, \"credits\": 1250, \"current_status\": [\"头痛欲裂\", \"记忆混乱\", \"身份未知\"] },\n  \"player_info\": { \"name_now\": \"顾言\", \"identity\": \"某科技公司高级程序员\", \"name_old\": \"玩家\" },\n  \"time\": { \"day\": 1, \"time\": \"06:00\" },\n  \"inventory_status\": {\n    \"add\": [],\n    \"remove\": []\n  },\n  \"npc_status\": [],\n  \"shop_status\": [{ \"name\": \"拿铁\", \"price\": 50, \"desc\": \"可以提神的香浓咸咖啡\" },\n    { \"name\": \"工牌绳\", \"price\": 10, \"desc\": \"普通的工牌挂绳，但这不是你的名字\" },\n    { \"name\": \"口香糖\", \"price\": 5, \"desc\": \"薄荷味，可以让你保持清醒\" }],\n  \"quest_status\": {\n    \"daily_quest\": \"今日任务（傲慢）：在晚间22:00的项目总结会上，让你的方案获得最高票数。\",\n    \"stranger_rule\": \"【规则1：不要相信“镜子”里的话。】【规则2：办公室内禁止携带任何“红色”物品。】【规则3：如果“老板”对你微笑，请立刻低下头。】\"\n  },\n  \"suggested_actions\": [\n    { \"type\": \"logical\", \"label\": \"接听电话\", \"text\": \"我决定先走出卫生间，接听那个响个不停的电话，弄清楚现在的情况。\" },\n    { \"type\": \"twist\", \"label\": \"挑战规则\", \"text\": \"我决定再看一眼镜子，冲着里面的倒影说句话，试探一下规则1的虚实。\" },\n    { \"type\": \"aggressive\", \"label\": \"砸碎镜子\", \"text\": \"我攥紧拳头，不管三七二十一，先用力砸向这面诡异的镜子再说。\" },\n    { \"type\": \"romantic\", \"label\": \"整理仪容\", \"text\": \"我对着镜中这张英俊的脸，仔细整理发型和衣领，毕竟“傲慢”的第一步就是无可挑剔的形象。\" },\n    { \"type\": \"irony\", \"label\": \"感谢镜子\", \"text\": \"我对着镜子露出一个微笑，彬彬有礼地道谢，感谢它告诉我这些“不能相信”的关键信息。\" },\n    { \"type\": \"timeskip\", \"label\": \"冷静一下\", \"text\": \"我决定先不理会外界，用冷水泼脸，强迫自己在这狭小的空间里冷静几分钟。\" }\n  ],\n  \"meta_event\": \"game_start\"\n}\n</state_update>";
+const MOCK_RESPONSE = "<narrative>\n冰冷的水流过你的指尖，让你瞬间从混沌中惊醒。你正俯身在一个老旧的陶瓷洗手池前，头痛欲裂，仿佛有无数不属于你的记忆碎片在脑内冲撞、拼接。\n\n你缓缓抬起头，看向面前布满水渍的镜子。镜中的人影，随着昏黄灯光的闪烁，显得既陌生又熟悉。那是一张苍白、瘦削的脸，眉眼深邃，鼻梁高挺，透着一股过劳的英俊。但这绝对不是你的脸。在你试图理解现状时，镜面忽然像一块老旧的CRT显示器般闪过几道雪花。紧接着，一行行像素风格的惨白文字，如同数字烙印般浮现在镜中倒影之上：\n\n【身份锚定：顾言】\n【回归之门开启条件：完成原主执念】\n【执念：在7日内，证明自己是公司里最有价值的员工。】\n【回归倒计时：168:00:00】\n\n你还没来得及消化这些信息，文字再次刷新，显现出更紧迫的内容：\n\n【第一日主题：傲慢 (Pride)】\n【今日任务：在今晚22:00的项目总结会上，让你的方案获得最高票数。】\n【任务失败：抹杀。】\n\n最后，几条血红色的规则浮现，带着不祥的气息，仿佛是这个世界的底层代码：\n【规则1：不要相信“镜子”里的话。】\n【规则2：办公室内禁止携带任何“红色”物品。】\n【规则3：如果“老板”对你微笑，请立刻低下头。】\n\n规则1和镜子上的文字形成了诡异的悖论，让你不寒而栗。就在这时，卫生间门外传来了一阵急促的手机铃声，打破了这令人窒息的寂静。铃声单调而执着，似乎已经响了很久。冰冷的空气中，你能闻到一丝劣质咖啡和打印机墨粉混合的味道，这里……似乎是个办公室的卫生间。时间紧迫，你必须做出选择。\n</narrative>\n\n<state_update>\n{\n  \"player_status\": { \"hp\": 100, \"san\": 80, \"credits\": 1250, \"current_status\": [\"头痛欲裂\", \"记忆混乱\", \"身份未知\"] },\n  \"player_info\": { \"name_now\": \"顾言\", \"identity\": \"某科技公司高级程序员\", \"name_old\": \"玩家\" },\n  \"time\": { \"day\": 1, \"time\": \"06:00\" },\n  \"inventory_status\": {\n    \"add\": [],\n    \"remove\": []\n  },\n  \"npc_status\": [],\n  \"shop_status\": [{ \"name\": \"拿铁\", \"price\": 50, \"desc\": \"可以提神的香浓咸咖啡\" },\n    { \"name\": \"工牌绳\", \"price\": 10, \"desc\": \"普通的工牌挂绳，但这不是你的名字\" },\n    { \"name\": \"口香糖\", \"price\": 5, \"desc\": \"薄荷味，可以让你保持清醒\" }],\n  \"quest_status\": {\n    \"daily_quest\": \"今日任务（傲慢）：在晚间22:00的项目总结会上，让你的方案获得最高票数。\",\n    \"stranger_rule\": \"【规则1：不要相信“镜子”里的话。】【规则2：办公室内禁止携带任何“红色”物品。】【规则3：如果“老板”对你微笑，请立刻低下头。】\"\n  },\n  \"suggested_actions\": [\n    { \"type\": \"logical\", \"label\": \"接听电话\", \"text\": \"我决定先走出卫生间，接听那个响个不停的电话，弄清楚现在的情况。\" },\n    { \"type\": \"twist\", \"label\": \"挑战规则\", \"text\": \"我决定再看一眼镜子，冲着里面的倒影说句话，试探一下规则1的虚实。\" },\n    { \"type\": \"aggressive\", \"label\": \"砸碎镜子\", \"text\": \"我攥紧拳头，不管三七二十一，先用力砸向这面诡异的镜子再说。\" },\n    { \"type\": \"romantic\", \"label\": \"整理仪容\", \"text\": \"我对着镜中这张英俊的脸，仔细整理发型和衣领，毕竟“傲慢”的第一步就是无可挑剔的形象。\" },\n    { \"type\": \"irony\", \"label\": \"感谢镜子\", \"text\": \"我对着镜子露出一个微笑，彬彬有礼地道谢，感谢它告诉我这些“不能相信”的关键信息。\" },\n    { \"type\": \"timeskip\", \"label\": \"冷静一下\", \"text\": \"我决定先不理会外界，用冷水泼脸，强迫自己在这狭小的空间里冷静几分钟。\" }\n  ],\n  \"meta_event\": \"game_start\"\n}\n</state_update>";
 
 // --- Interfaces for Type Safety ---
 export interface ActionChoice {
@@ -211,7 +211,7 @@ export const fetchModelList = async (endpoint: string, apiKey: string): Promise<
     const key = apiKey || process.env.GEMINI_API_KEY || process.env.API_KEY;
     if (!key) throw new Error("Missing API Key");
 
-    const url = `${baseUrl}/v1beta/models`;
+    const url = `${baseUrl}/models`;
     const response = await fetch(url, {
       headers: {
         'Content-Type': 'application/json',
@@ -252,7 +252,7 @@ export const sendMessageToGemini = async (
 
     let baseUrl = config?.endpoint || process.env.GEMINI_API_ENDPOINT || "https://generativelanguage.googleapis.com";
     baseUrl = baseUrl.replace(/\/$/, "");
-    const model = config?.model || 'gemini-3-flash-preview';
+    const model = config?.model || 'GLM-4.7-Flash';
     const url = `${baseUrl}/v1beta/models/${model}:generateContent`;
 
     // Construct the user message with injected state context
@@ -301,6 +301,85 @@ export const sendMessageToGemini = async (
 
   } catch (error: any) {
     console.error("Gemini API Error:", error);
+    return { text: `系统错误: ${error.message}` };
+  }
+};
+
+// 智谱 GLM API（OpenAI 兼容格式）
+export const sendMessageToGLM = async (
+  history: { role: string; parts: { text: string }[] }[],
+  message: string,
+  config?: { model: string; temperature: number; endpoint?: string; apiKey?: string; },
+  gameState?: GameState,
+  summary: string = ""
+): Promise<{ text: string; stateUpdate?: StateUpdate }> => {
+  try {
+    // [MOCK 模式检查]
+    if (USE_MOCK) {
+      console.log("⚠️ Using MOCK_MODE Response");
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      return parseGeminiResponse(MOCK_RESPONSE);
+    }
+
+    const apiKey = config?.apiKey || process.env.GEMINI_API_KEY || process.env.API_KEY;
+    if (!apiKey) {
+      return { text: "⚠️ 系统警告: 未检测到 API 密钥。" };
+    }
+
+    let baseUrl = config?.endpoint || process.env.GEMINI_API_ENDPOINT || "https://open.bigmodel.cn/api/paas/v4";
+    baseUrl = baseUrl.replace(/\/$/, "");
+    const model = config?.model || 'GLM-4.7-Flash';
+    const url = `${baseUrl}/chat/completions`;
+
+    // 构造带有游戏状态上下文的用户消息
+    const fullUserMessage = constructFinalPrompt(gameState, summary, message);
+
+    // 将 Gemini 格式的 history 转换为 OpenAI 兼容的 messages 格式
+    const messages: { role: string; content: string }[] = [
+      // system prompt 作为第一条 system 消息
+      { role: "system", content: MODULE_1_RULES },
+      // 历史消息：Gemini 的 "model" role 对应 OpenAI 的 "assistant" role
+      ...history.map(h => ({
+        role: h.role === "model" ? "assistant" : h.role,
+        content: h.parts.map(p => p.text).join("")
+      })),
+      // 当前用户消息
+      { role: "user", content: fullUserMessage }
+    ];
+
+    const body = {
+      model,
+      messages,
+      temperature: config?.temperature ?? 0.8,
+      max_tokens: 4096,
+    };
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${apiKey}`
+      },
+      body: JSON.stringify(body)
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      throw new Error(`API Error: ${response.status} ${errText}`);
+    }
+
+    const data = await response.json();
+
+    // OpenAI 兼容格式的响应解析
+    if (data.choices && data.choices[0]?.message?.content) {
+      const rawText = data.choices[0].message.content;
+      return parseGeminiResponse(rawText);
+    } else {
+      return { text: "...信号干扰，无法解析数据..." };
+    }
+
+  } catch (error: any) {
+    console.error("GLM API Error:", error);
     return { text: `系统错误: ${error.message}` };
   }
 };

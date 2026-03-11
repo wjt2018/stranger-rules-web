@@ -19,7 +19,7 @@ export interface InventoryItem {
 }
 
 import { getConfig, saveConfig, saveGameState, getGameState, saveMessages, getMessages, GameSaveData, SavedMessage, saveSuggestedActions, getSuggestedActions } from './services/db';
-import { sendMessageToGemini, GameState, StateUpdate } from './services/geminiService';
+import { sendMessageToGLM, GameState, StateUpdate } from './services/geminiService';
 
 const App = () => {
   const [activeModule, setActiveModule] = useState<ModuleType | null>(null);
@@ -71,7 +71,7 @@ const App = () => {
 
   // LLM Configuration state
   const [llmConfig, setLlmConfig] = useState({
-    model: 'gemini-2.5-pro',
+    model: 'GLM-4.7-Flash',
     temperature: 0.8,
     endpoint: '',
     apiKey: '',
@@ -289,7 +289,7 @@ const App = () => {
     setPlayerInfo((prev: any) => ({ ...prev, name_old: data.codeName || '' }));
     try {
       const firstMessage = `[游戏初始化] 玩家原名：${data.codeName}，性别：${data.gender}，世界背景：${data.anchor}${data.extra ? '，额外设定：' + data.extra : ''}。\n这是第一轮游戏开始，请生成完整的开场叙事，必须包含：1) 宿主的身份介绍；2) 当前世界观背景；3) 主线任务；4) 今日的每日任务；5) 规则怪谈的规则。同时返回完整的 state_update（包括 player_info、quest_status、shop_status 等所有字段）。`;
-      const { text, stateUpdate } = await sendMessageToGemini([], firstMessage, llmConfig, gameState);
+      const { text, stateUpdate } = await sendMessageToGLM([], firstMessage, llmConfig, gameState);
       setFirstAIResult({ text, stateUpdate, actions: stateUpdate?.suggested_actions });
       if (stateUpdate) {
         handleStateUpdate(stateUpdate);

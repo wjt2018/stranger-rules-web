@@ -26,8 +26,8 @@ export const SettingsModule: React.FC<SettingsModuleProps> = ({ llmConfig, onCon
   const isSystemMode = !llmConfig.apiKey && !!(process.env.GEMINI_API_KEY || process.env.API_KEY);
 
   const defaultModels = isSystemMode 
-    ? [process.env.GEMINI_API_MODEL || 'gemini-2.5-pro'] 
-    : ['gemini-2.5-pro'];
+    ? [process.env.GEMINI_API_MODEL || 'GLM-4.7-Flash'] 
+    : ['GLM-4.7-Flash'];
 
   const handleTestConnection = async () => {
     if (isSystemMode) {
@@ -68,7 +68,7 @@ export const SettingsModule: React.FC<SettingsModuleProps> = ({ llmConfig, onCon
 
   const getModelList = () => {
     if (isSystemMode) {
-      return [process.env.GEMINI_API_MODEL || 'gemini-2.5-pro'];
+      return [process.env.GEMINI_API_MODEL || 'GLM-4.7-Flash'];
     }
     return availableModels.length > 0 ? availableModels : defaultModels;
   };
@@ -88,7 +88,7 @@ export const SettingsModule: React.FC<SettingsModuleProps> = ({ llmConfig, onCon
         {/* LLM Info Section */}
         <section>
           <h3 className="text-xs text-gray-400 uppercase tracking-widest border-l-2 border-white pl-2 mb-6 flex items-center gap-2">
-            <Cpu size={16} className="text-cyan-400" /> 神经逻辑核心配置
+            <Cpu size={16} className="text-cyan-400" /> 神经逻辑核心配置 （该模块暂时不可用）
           </h3>
           <div className="grid grid-cols-1 gap-6">
             <div className="p-4 bg-white/5 border border-white/10 flex flex-col gap-4 relative overflow-hidden">

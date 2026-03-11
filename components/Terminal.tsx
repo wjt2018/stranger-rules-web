@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Send, Terminal as TerminalIcon, ChevronUp, ChevronDown, Zap, Search, Eye, MessageSquare, ShieldAlert, Cpu, Radio } from 'lucide-react';
 import { ChatMessage } from '../types';
-import { sendMessageToGemini, GameState, StateUpdate, ActionChoice } from '../services/geminiService';
+import { sendMessageToGLM, GameState, StateUpdate, ActionChoice } from '../services/geminiService';
 import { GlitchText } from './GlitchText';
 
 interface TerminalProps {
@@ -131,8 +131,8 @@ export const Terminal: React.FC<TerminalProps> = ({ active, llmConfig, gameState
         onClearItemHint?.();
       }
 
-      // Call Gemini with GameState!
-      const { text, stateUpdate } = await sendMessageToGemini(history, actualInput, llmConfig, gameState);
+      // 调用智谱 GLM API
+      const { text, stateUpdate } = await sendMessageToGLM(history, actualInput, llmConfig, gameState);
 
       // Process State Update
       if (stateUpdate) {
