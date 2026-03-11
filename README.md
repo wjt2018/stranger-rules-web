@@ -6,7 +6,7 @@
 
 <br/>
 
-[开始游戏]() · [讨论与反馈](https://github.com/wjt2018/stranger-rules-web/discussions)
+[开始游戏](https://stranger-rules-web.wangjingting-2018.workers.dev/) · [讨论与反馈](https://github.com/wjt2018/stranger-rules-web/discussions)
 
 </div>
 
